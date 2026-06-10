@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — RailTrack QR</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rail-blue:  #0a2a4a;
+      --rail-mid:   #0f3d6e;
+      --accent:     #f5a623;
+      --steel:      #c8d8e8;
+      --light-bg:   #edf2f7;
+      --white:      #ffffff;
+      --text-main:  #1a2b3c;
+      --text-muted: #607080;
+      --danger:     #e53e3e;
+      --success:    #276749;
+      --radius:     10px;
+      --sidebar-w:  230px;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--light-bg);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: var(--text-main);
+      display: flex;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--rail-blue);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+    .sidebar-brand {
+      padding: 22px 20px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .sidebar-brand .b-name { font-size: 15px; font-weight: 700; color: var(--white); line-height: 1.15; }
+    .sidebar-brand .b-sub  { font-size: 10px; color: var(--steel); letter-spacing: 1.5px; text-transform: uppercase; }
+    .sidebar nav { flex: 1; padding: 14px 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 20px;
+      font-size: 13.5px; color: rgba(200,216,232,.75);
+      cursor: pointer; transition: background .15s, color .15s;
+      border-left: 3px solid transparent; text-decoration: none;
+    }
+    .nav-item:hover  { background: rgba(255,255,255,.07); color: var(--white); }
+    .nav-item.active { background: rgba(245,166,35,.12); color: var(--accent); border-left-color: var(--accent); }
+    .nav-section { padding:14px 20px 5px; font-size:10px; font-weight:700; color:rgba(200,216,232,.35); text-transform:uppercase; letter-spacing:1.5px; border-top:1px solid rgba(255,255,255,.06); margin-top:6px; }
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,.08); font-size: 11.5px; color: rgba(200,216,232,.4); }
+    .nav-logout {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 20px; font-size: 13.5px; color: rgba(248,113,113,.8);
+      cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+      border-left: 3px solid transparent; transition: background .15s, color .15s;
+    }
+    .nav-logout:hover { background: rgba(248,113,113,.12); color: #fca5a5; border-left-color: #ef4444; }
+
+    /* ── Main ── */
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    .topbar {
+      background: var(--white);
+      border-bottom: 1px solid #dce6ef;
+      padding: 0 28px;
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-title { font-size: 16px; font-weight: 700; color: var(--rail-blue); }
+    .topbar-date  { font-size: 12px; color: var(--text-muted); }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .avatar {
+      width: 34px; height: 34px; background: var(--rail-mid); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--white); font-size: 13px; font-weight: 700;
+    }
+    .user-name { font-size: 13px; font-weight: 600; }
+    .user-role { font-size: 11px; color: var(--text-muted); }
+
+    .page { padding: 24px 28px 48px; }
+
+    /* ── Stat Cards ── */
+    .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px; }
+    .stat-card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 10px rgba(10,42,74,.07);
+      display: flex; align-items: flex-start; gap: 14px;
+      border-top: 3px solid transparent;
+    }
+    .stat-card.blue   { border-top-color: var(--rail-mid); }
+    .stat-card.amber  { border-top-color: var(--accent); }
+    .stat-card.green  { border-top-color: #38a169; }
+    .stat-card.red    { border-top-color: var(--danger); }
+    .stat-icon {
+      width: 42px; height: 42px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-icon.blue  { background: #e8f0f9; color: var(--rail-mid); }
+    .stat-icon.amber { background: #fff8e8; color: var(--accent); }
+    .stat-icon.green { background: #f0fff4; color: #38a169; }
+    .stat-icon.red   { background: #fff5f5; color: var(--danger); }
+    .stat-val  { font-size: 26px; font-weight: 800; color: var(--rail-blue); line-height: 1.1; }
+    .stat-lbl  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .stat-sub  { font-size: 11px; color: var(--text-muted); margin-top: 5px; display: flex; align-items: center; gap: 4px; }
+    .stat-sub .up   { color: #38a169; }
+    .stat-sub .down { color: var(--danger); }
+
+    /* ── Widget card ── */
+    .widget {
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(10,42,74,.07);
+      overflow: hidden;
+      margin-bottom: 22px;
+    }
+    .widget-head {
+      padding: 14px 20px;
+      border-bottom: 1px solid #e8eef5;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .widget-head h2 {
+      font-size: 13.5px; font-weight: 700; color: var(--rail-blue);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .widget-head .badge {
+      background: #e8f0f8; color: var(--rail-mid);
+      font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+    }
+    .badge-amber { background: #fff8e8 !important; color: #92600a !important; }
+    .badge-red   { background: #fff5f5 !important; color: var(--danger) !important; }
+    .badge-green { background: #f0fff4 !important; color: #276749 !important; }
+    .widget-body { padding: 20px; }
+
+    /* ── Wheel Position table ── */
+    .pos-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .pos-table th {
+      background: var(--rail-blue);
+      color: var(--white);
+      padding: 9px 14px;
+      font-weight: 600;
+      letter-spacing: .3px;
+      text-align: center;
+    }
+    .pos-table th:first-child { text-align: left; }
+    .pos-table td {
+      padding: 9px 14px;
+      border-bottom: 1px solid #edf2f7;
+      text-align: center;
+    }
+    .pos-table td:first-child { text-align: left; font-weight: 600; }
+    .pos-table tr:nth-child(even) td { background: #f8fafc; }
+    .pos-table tr.total-row td {
+      background: #e8f0f9 !important;
+      font-weight: 700;
+      color: var(--rail-blue);
+      font-size: 14px;
+    }
+    .pos-table tr:hover td { background: #edf5ff !important; }
+    .pos-table .wap5  { color: #0f3d6e; font-weight: 700; }
+    .pos-table .wag7  { color: #276749; font-weight: 700; }
+    .pos-table .wap7  { color: #6b46c1; font-weight: 700; }
+    .pos-table .eled  { background: #fffbeb !important; }
+
+    /* ── Wear limits ── */
+    .wear-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .wear-section-title {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 8px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .wear-section-title.after  { background: #e8f0f9; color: var(--rail-mid); }
+    .wear-section-title.before { background: #fff5f5; color: var(--danger); }
+    .wear-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .wear-item.root-after   { background: #e8f0f9; }
+    .wear-item.flange-after { background: #edf9f0; }
+    .wear-item.root-before   { background: #fff5f5; }
+    .wear-item.flange-before { background: #fff8f0; }
+    .wear-label { font-size: 13px; font-weight: 700; color: var(--text-main); }
+    .wear-val {
+      font-size: 32px; font-weight: 900; line-height: 1;
+      border-radius: 8px; padding: 6px 14px;
+    }
+    .wear-item.root-after   .wear-val { background: var(--rail-mid); color: #fff; }
+    .wear-item.flange-after .wear-val { background: #38a169;         color: #fff; }
+    .wear-item.root-before   .wear-val { background: var(--danger);  color: #fff; }
+    .wear-item.flange-before .wear-val { background: #dd6b20;        color: #fff; }
+
+    /* ── Two-column row ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 22px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; margin-bottom: 22px; }
+
+    /* ── Status / defect tables ── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    .data-table th {
+      background: var(--rail-blue);
+      color: var(--white);
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .data-table th:last-child { text-align: right; }
+    .data-table td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #edf2f7;
+    }
+    .data-table td:last-child { text-align: right; font-weight: 600; }
+    .data-table tr:nth-child(even) td { background: #f8fafc; }
+    .data-table tr.total-row td {
+      background: #e8f0f9 !important;
+      font-weight: 700;
+      color: var(--rail-blue);
+    }
+    .data-table tr:hover td { background: #edf5ff !important; }
+    .zero  { color: #b0c0cc !important; font-weight: 400 !important; }
+    .nonzero { color: var(--rail-blue); }
+
+    /* Status row colour coding */
+    .dia-warn { background: #fffbeb !important; }
+    .dia-crit { background: #fff5f5 !important; }
+    .dia-good { background: #f0fff4 !important; }
+
+    /* ── Legend ── */
+    .legend { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+    .legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); }
+    .legend-dot { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+    .leg-lathe   { background: #f9c6c6; }
+    .leg-attn    { background: #f6e4a2; }
+    .leg-good    { background: #c6f6d5; }
+    .leg-scrap   { background: #fed7d7; }
+
+    /* ── Chart containers ── */
+    .chart-wrap { position: relative; height: 240px; }
+
+    /* ── Summary bar at top of widget ── */
+    .mini-stats { display: flex; gap: 0; border-bottom: 1px solid #edf2f7; }
+    .mini-stat {
+      flex: 1; padding: 12px 16px; border-right: 1px solid #edf2f7; text-align: center;
+    }
+    .mini-stat:last-child { border-right: none; }
+    .mini-stat .ms-val { font-size: 22px; font-weight: 800; color: var(--rail-blue); }
+    .mini-stat .ms-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* attention pills */
+    .attn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    .attn-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .attn-lathe { background: #f9c6c6; color: #742a2a; }
+    .attn-attn  { background: #fef3c7; color: #7c4a00; }
+
+    @media (max-width: 1100px) {
+      .stat-row   { grid-template-columns: 1fr 1fr; }
+      .three-col  { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 760px) {
+      :root { --sidebar-w: 0px; }
+      .sidebar   { display: none; }
+      .main      { margin-left: 0; }
+      .stat-row  { grid-template-columns: 1fr 1fr; }
+      .two-col, .three-col { grid-template-columns: 1fr; }
+      .wear-grid { grid-template-columns: 1fr; }
+      .page      { padding: 16px 14px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg width="34" height="34" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r="24" stroke="#f5a623" stroke-width="3.5"/>
+        <circle cx="26" cy="26" r="7" fill="#f5a623"/>
+        <circle cx="26" cy="26" r="3.5" fill="#0a2a4a"/>
+        <line x1="26" y1="2" x2="26" y2="50" stroke="#f5a623" stroke-width="2.5"/>
+        <line x1="2" y1="26" x2="50" y2="26" stroke="#f5a623" stroke-width="2.5"/>
+        <line x1="9.5" y1="9.5" x2="42.5" y2="42.5" stroke="#f5a623" stroke-width="2.5"/>
+        <line x1="42.5" y1="9.5" x2="9.5" y2="42.5" stroke="#f5a623" stroke-width="2.5"/>
+        <circle cx="26" cy="26" r="14" stroke="#f5a623" stroke-width="1.5" stroke-dasharray="4 4"/>
+      </svg>
+      <div>
+        <div class="b-name">RailTrack QR</div>
+        <div class="b-sub">Asset Mgmt</div>
+      </div>
+    </div>
+    <nav>
+      <!-- <!-- <a class="nav-item active" href="dashboard.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.293l6 6V13.5a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5v-3h-2v3a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5V9.293l6-6zm-5 6.707V13h3v-3h4v3h3V9.707L8 4.707 3 9.707z"/><path d="M13 2.5V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" href="wheel-list.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3 4.5h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2zm0 3h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2zm0 3h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2z"/></svg>
+        Wheel Assets
+      </a>
+      <a class="nav-item" href="inspection-log.html" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3zm2 3.5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1H5z"/></svg>
+        Inspection Log
+      </a>
+      <a class="nav-item" href="activity-log.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
+        Activity Log
+      </a>
+      <a class="nav-item" href="#" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3zm1 3h8a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1zm0 2h8a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1zm0 2h5a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1z"/></svg>
+        Reports
+      </a>
+      <a class="nav-item" href="settings.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/></svg>
+        Settings
+      </a>
+      <div class="nav-section">User Management</div>
+      <a class="nav-item" href="users.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/></svg>
+        Users
+      </a>
+      <a class="nav-item" href="groups.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002H7.022zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>
+        Groups
+      </a>
+    </nav>
+    <button class="nav-logout" onclick="logout()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/><path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/></svg>
+      Logout
+    </button>
+    <div class="sidebar-footer">WAG 7 · ELS/ED · v2.4.1</div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Dashboard</div>
+        <div class="topbar-date">Wheel Position as on 13/05/2026</div>
+      </div>
+      <div class="topbar-right">
+        <div style="text-align:right">
+          <div class="user-name" id="topUser">—</div>
+          <div class="user-role" id="topRole">—</div>
+        </div>
+        <div class="avatar" id="topAvatar">—</div>
+      </div>
+    </div>
+
+    <div class="page">
+
+      <!-- ── Stat Cards ── -->
+      <div class="stat-row">
+
+        <div class="stat-card blue">
+          <div class="stat-icon blue">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm.5 12.5V14a.5.5 0 0 1-1 0v-1.5a6 6 0 0 1-5-5H1a.5.5 0 0 1 0-1h1.5a6 6 0 0 1 5-5V1a.5.5 0 0 1 1 0v1.5a6 6 0 0 1 5 5H15a.5.5 0 0 1 0 1h-1.5a6 6 0 0 1-5 5z"/></svg>
+          </div>
+          <div>
+            <div class="stat-val">117</div>
+            <div class="stat-lbl">Total Wheels Tracked</div>
+            <div class="stat-sub"><span class="up">▲ WAP5: 2 &nbsp;·&nbsp; WAG7: 37 &nbsp;·&nbsp; WAP7: 78</span></div>
+          </div>
+        </div>
+
+        <div class="stat-card green">
+          <div class="stat-icon green">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z"/><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/></svg>
+          </div>
+          <div>
+            <div class="stat-val">94</div>
+            <div class="stat-lbl">ELS / ED Wheels</div>
+            <div class="stat-sub">WAP5: 1 &nbsp;·&nbsp; WAG7: 21 &nbsp;·&nbsp; WAP7: 73</div>
+          </div>
+        </div>
+
+        <div class="stat-card amber">
+          <div class="stat-icon amber">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+          </div>
+          <div>
+            <div class="stat-val">16</div>
+            <div class="stat-lbl">GOC Defective Wheels</div>
+            <div class="stat-sub"><span class="down">RD: 16 · Needs attention</span></div>
+          </div>
+        </div>
+
+        <div class="stat-card red">
+          <div class="stat-icon red">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.553.553 0 0 1-1.1 0L7.1 4.995z"/></svg>
+          </div>
+          <div>
+            <div class="stat-val">2</div>
+            <div class="stat-lbl">Wheels Below 1030 mm</div>
+            <div class="stat-sub"><span class="down">Critical diameter — inspect</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Row: Wheel Position table + Wear Limits ── -->
+      <div class="two-col" style="align-items:start">
+
+        <!-- Wheel Position Summary -->
+        <div class="widget">
+          <div class="widget-head">
+            <h2>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>
+              Wheel Position Summary
+            </h2>
+            <span class="badge">As on 13/05/26</span>
+          </div>
+          <div class="widget-body" style="padding:0">
+            <table class="pos-table">
+              <thead>
+                <tr>
+                  <th>Location</th>
+                  <th class="wap5">WAP 5</th>
+                  <th class="wag7" style="color:#a5f3c1">WAG 7</th>
+                  <th class="wap7" style="color:#d8b4fe">WAP 7</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>LW / PER</td>
+                  <td class="wap5">1</td>
+                  <td class="wag7">0</td>
+                  <td class="wap7">5</td>
+                </tr>
+                <tr>
+                  <td>ELS/ED (Loco Account)</td>
+                  <td class="wap5">0</td>
+                  <td class="wag7">0</td>
+                  <td class="wap7 zero">0</td>
+                </tr>
+                <tr>
+                  <td>GOC</td>
+                  <td class="wap5 zero">0</td>
+                  <td class="wag7">16</td>
+                  <td class="wap7 zero">0</td>
+                </tr>
+                <tr class="eled">
+                  <td>ELS / ED</td>
+                  <td class="wap5">1</td>
+                  <td class="wag7">21</td>
+                  <td class="wap7">73</td>
+                </tr>
+                <tr class="total-row">
+                  <td>TOTAL</td>
+                  <td>2</td>
+                  <td>37</td>
+                  <td>78</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Position bar chart -->
+            <div style="padding:20px 20px 16px">
+              <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Loco Type Distribution</div>
+              <div class="chart-wrap" style="height:180px">
+                <canvas id="posChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wear Limits -->
+        <div class="widget">
+          <div class="widget-head">
+            <h2>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M1 0 0 1l2.2 3.081a1 1 0 0 0 .815.419h.07a1 1 0 0 1 .708.293l2.675 2.675-2.617 2.654A3.003 3.003 0 0 0 0 13a3 3 0 1 0 5.878-.851l2.654-2.617.968.968-.305.914a1 1 0 0 0 .242 1.023l3.27 3.27a.997.997 0 0 0 1.414 0l1.586-1.586a.997.997 0 0 0 0-1.414l-3.27-3.27a1 1 0 0 0-1.023-.242L10.5 9.5l-.96-.96 2.68-2.643A3.005 3.005 0 0 0 16 3c0-.269-.035-.53-.102-.777l-2.14 2.141L12 4l-.364-1.757L13.777.102a3 3 0 0 0-3.675 3.68L7.462 6.46 4.793 3.793a1 1 0 0 1-.293-.707v-.071a1 1 0 0 0-.419-.814L1 0z"/></svg>
+              Wheel Wear Limits
+            </h2>
+          </div>
+          <div class="widget-body">
+            <div class="wear-grid">
+              <div>
+                <div class="wear-section-title after">Wear Limit — After WT</div>
+                <div class="wear-item root-after">
+                  <span class="wear-label">Root Wear</span>
+                  <span class="wear-val">1.5</span>
+                </div>
+                <div class="wear-item flange-after">
+                  <span class="wear-label">Flange Wear</span>
+                  <span class="wear-val">1.2</span>
+                </div>
+              </div>
+              <div>
+                <div class="wear-section-title before">Wear Limit — Before WT</div>
+                <div class="wear-item root-before">
+                  <span class="wear-label">Root Wear</span>
+                  <span class="wear-val">4.0</span>
+                </div>
+                <div class="wear-item flange-before">
+                  <span class="wear-label">Flange Wear</span>
+                  <span class="wear-val">2.0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Wear comparison bar chart -->
+            <div style="margin-top:20px">
+              <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Before vs After WT Comparison</div>
+              <div class="chart-wrap" style="height:160px">
+                <canvas id="wearChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Row: Wheel Status + After WT tables ── -->
+      <div class="two-col" style="align-items:start">
+
+        <!-- Wheel Status -->
+        <div class="widget">
+          <div class="widget-head">
+            <h2>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm.5 4.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3a.5.5 0 0 1 1 0z"/></svg>
+              Wheel Status by Diameter
+            </h2>
+            <span class="badge">Current</span>
+          </div>
+          <div class="widget-body" style="padding:0">
+            <div class="mini-stats">
+              <div class="mini-stat"><div class="ms-val">21</div><div class="ms-lbl">Total</div></div>
+              <div class="mini-stat"><div class="ms-val" style="color:var(--danger)">2</div><div class="ms-lbl">&lt;1030 mm</div></div>
+              <div class="mini-stat"><div class="ms-val" style="color:#38a169">9</div><div class="ms-lbl">1031–1040</div></div>
+              <div class="mini-stat"><div class="ms-val" style="color:#6b46c1">1</div><div class="ms-lbl">&gt;1090 mm</div></div>
+            </div>
+            <div style="padding:16px">
+              <table class="data-table">
+                <thead>
+                  <tr><th>Dia Range (mm)</th><th>No. of Wheels</th></tr>
+                </thead>
+                <tbody>
+                  <tr class="dia-crit"><td>&lt; 1030</td><td>2</td></tr>
+                  <tr class="dia-good"><td>1031 – 1040</td><td>9</td></tr>
+                  <tr><td>1041 – 1050</td><td class="zero">0</td></tr>
+                  <tr><td>1051 – 1060</td><td>7</td></tr>
+                  <tr><td>1061 – 1070</td><td>2</td></tr>
+                  <tr><td>1071 – 1080</td><td class="zero">0</td></tr>
+                  <tr><td>1081 – 1090</td><td class="zero">0</td></tr>
+                  <tr><td>&gt; 1090</td><td>1</td></tr>
+                  <tr class="total-row"><td>Total</td><td>21</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- After WT Status -->
+        <div class="widget">
+          <div class="widget-head">
+            <h2>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm.5 4.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3a.5.5 0 0 1 1 0z"/></svg>
+              Wheel Status — After WT
+            </h2>
+            <span class="badge badge-green">Post Wheel Turning</span>
+          </div>
+          <div class="widget-body" style="padding:0">
+            <div class="mini-stats">
+              <div class="mini-stat"><div class="ms-val">21</div><div class="ms-lbl">Total</div></div>
+              <div class="mini-stat"><div class="ms-val" style="color:var(--danger)">2</div><div class="ms-lbl">&lt;1030 mm</div></div>
+              <div class="mini-stat"><div class="ms-val" style="color:#38a169">9</div><div class="ms-lbl">1031–1040</div></div>
+              <div class="mini-stat"><div class="ms-val" style="color:#6b46c1">1</div><div class="ms-lbl">&gt;1090 mm</div></div>
+            </div>
+            <div style="padding:16px">
+              <table class="data-table">
+                <thead>
+                  <tr><th>Dia Range (mm)</th><th>No. of Wheels</th></tr>
+                </thead>
+                <tbody>
+                  <tr class="dia-crit"><td>&lt; 1030</td><td>2</td></tr>
+                  <tr class="dia-good"><td>1031 – 1040</td><td>9</td></tr>
+                  <tr><td>1041 – 1050</td><td class="zero">0</td></tr>
+                  <tr><td>1051 – 1060</td><td>7</td></tr>
+                  <tr><td>1061 – 1070</td><td>2</td></tr>
+                  <tr><td>1071 – 1080</td><td class="zero">0</td></tr>
+                  <tr><td>1081 – 1090</td><td class="zero">0</td></tr>
+                  <tr><td>&gt; 1090</td><td>1</td></tr>
+                  <tr class="total-row"><td>Total</td><td>21</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Diameter Distribution Bar Chart ── -->
+      <div class="widget" style="margin-bottom:22px">
+        <div class="widget-head">
+          <h2>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/></svg>
+            Wheel Diameter Distribution — Current vs After WT
+          </h2>
+          <span class="badge">Bar Chart</span>
+        </div>
+        <div class="widget-body">
+          <div class="chart-wrap" style="height:260px">
+            <canvas id="diaChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Row: Defects LW/PER + GOC Shed ── -->
+      <div class="two-col" style="align-items:start">
+
+        <!-- Wheels at LW/PER -->
+        <div class="widget">
+          <div class="widget-head">
+            <h2>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+              Wheels at LW / PER
+            </h2>
+            <span class="badge">Defect Summary</span>
+          </div>
+          <div class="widget-body" style="padding:0">
+            <div class="mini-stats">
+              <div class="mini-stat"><div class="ms-val zero" style="color:#b0c0cc">0</div><div class="ms-lbl">Total Defects</div></div>
+              <div class="mini-stat"><div class="ms-val zero" style="color:#b0c0cc">0</div><div class="ms-lbl">RD</div></div>
+              <div class="mini-stat"><div class="ms-val zero" style="color:#b0c0cc">0</div><div class="ms-lbl">WD</div></div>
+            </div>
+            <div style="padding:16px">
+              <table class="data-table">
+                <thead>
+                  <tr><th>Defect Type</th><th>No. of Wheels</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>RD</td><td class="zero">0</td></tr>
+                  <tr><td>RA</td><td class="zero">0</td></tr>
+                  <tr><td>WD</td><td class="zero">0</td></tr>
+                  <tr><td>MSU</td><td class="zero">0</td></tr>
+                  <tr><td>Step Size JD</td><td class="zero">0</td></tr>
+                  <tr><td>Step Size Thrower</td><td class="zero">0</td></tr>
+                  <tr><td>Disc Crack</td><td class="zero">0</td></tr>
+                  <tr><td>Bull Gear</td><td class="zero">0</td></tr>
+                  <tr class="total-row"><td>Total</td><td class="zero">0</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wheels at GOC Shed -->
+        <div class="widget">
+          <div class="widget-head">
+            <h2>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+              Wheels at GOC Shed
+            </h2>
+            <span class="badge badge-red">16 Defects</span>
+          </div>
+          <div class="widget-body" style="padding:0">
+            <div class="mini-stats">
+              <div class="mini-stat"><div class="ms-val" style="color:var(--danger)">16</div><div class="ms-lbl">Total Defects</div></div>
+              <div class="mini-stat"><div class="ms-val" style="color:var(--danger)">16</div><div class="ms-lbl">RD</div></div>
+              <div class="mini-stat"><div class="ms-val zero" style="color:#b0c0cc">0</div><div class="ms-lbl">Others</div></div>
+            </div>
+            <div style="padding:16px">
+              <table class="data-table">
+                <thead>
+                  <tr><th>Defect Type</th><th>No. of Wheels</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>RD</td><td style="color:var(--danger);font-weight:700">16</td></tr>
+                  <tr><td>RA</td><td class="zero">0</td></tr>
+                  <tr><td>WD</td><td class="zero">0</td></tr>
+                  <tr><td>MSU</td><td class="zero">0</td></tr>
+                  <tr><td>Step Size JD</td><td class="zero">0</td></tr>
+                  <tr><td>Step Size Thrower</td><td class="zero">0</td></tr>
+                  <tr><td>Disc Crack</td><td class="zero">0</td></tr>
+                  <tr><td>Bull Gear</td><td class="zero">0</td></tr>
+                  <tr class="total-row"><td>Total</td><td>16</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Defect Comparison Bar Chart ── -->
+      <div class="widget" style="margin-bottom:22px">
+        <div class="widget-head">
+          <h2>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/></svg>
+            Defect Comparison — LW/PER vs GOC Shed
+          </h2>
+          <span class="badge badge-amber">Defect Analysis</span>
+        </div>
+        <div class="widget-body">
+          <div class="chart-wrap" style="height:240px">
+            <canvas id="defectChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Legend ── -->
+      <div class="widget">
+        <div class="widget-head">
+          <h2>Legend</h2>
+        </div>
+        <div class="widget-body">
+          <div class="legend">
+            <div class="legend-item"><div class="legend-dot leg-lathe"></div>At Wheel Lathe</div>
+            <div class="legend-item"><div class="legend-dot leg-attn"></div>Attention Required</div>
+            <div class="legend-item"><div class="legend-dot leg-good"></div>Within Limits</div>
+            <div class="legend-item"><div class="legend-dot leg-scrap"></div>Critical / Scrap</div>
+          </div>
+          <div class="attn-row" style="margin-top:14px">
+            <div class="attn-pill attn-lathe">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.553.553 0 0 1-1.1 0L7.1 4.995z"/></svg>
+              At Wheel Lathe
+            </div>
+            <div class="attn-pill attn-attn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+              Attention Required
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+    Chart.defaults.font.size   = 12;
+
+    const railBlue  = '#0f3d6e';
+    const railLight = 'rgba(15,61,110,.15)';
+    const accent    = '#f5a623';
+    const green     = '#38a169';
+    const danger    = '#e53e3e';
+    const purple    = '#6b46c1';
+    const gridColor = 'rgba(0,0,0,.06)';
+
+    // ── 1. Position Chart (grouped bar: WAP5, WAG7, WAP7 per location) ──
+    new Chart(document.getElementById('posChart'), {
+      type: 'bar',
+      data: {
+        labels: ['LW/PER', 'ELS/ED (Loco)', 'GOC', 'ELS/ED'],
+        datasets: [
+          { label: 'WAP 5', data: [1, 0, 0, 1], backgroundColor: '#3182ce', borderRadius: 4 },
+          { label: 'WAG 7', data: [0, 0, 16, 21], backgroundColor: '#38a169', borderRadius: 4 },
+          { label: 'WAP 7', data: [5, 0, 0, 73], backgroundColor: '#805ad5', borderRadius: 4 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 10, padding: 14 } } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { font: { size: 11 } } },
+          y: { grid: { color: gridColor }, beginAtZero: true, ticks: { stepSize: 10 } }
+        }
+      }
+    });
+
+    // ── 2. Wear Limits Chart ──
+    new Chart(document.getElementById('wearChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Root Wear', 'Flange Wear'],
+        datasets: [
+          { label: 'After WT', data: [1.5, 1.2], backgroundColor: ['#3182ce', '#38a169'], borderRadius: 5 },
+          { label: 'Before WT', data: [4.0, 2.0], backgroundColor: [danger, '#dd6b20'], borderRadius: 5 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 10, padding: 14 } } },
+        scales: {
+          x: { grid: { color: gridColor } },
+          y: { grid: { color: gridColor }, beginAtZero: true, max: 5,
+               ticks: { callback: v => v + ' mm' } }
+        }
+      }
+    });
+
+    // ── 3. Diameter Distribution Chart ──
+    const diaLabels = ['<1030', '1031-1040', '1041-1050', '1051-1060', '1061-1070', '1071-1080', '1081-1090', '>1090'];
+    const diaData   = [2, 9, 0, 7, 2, 0, 0, 1];
+    new Chart(document.getElementById('diaChart'), {
+      type: 'bar',
+      data: {
+        labels: diaLabels,
+        datasets: [
+          {
+            label: 'Current',
+            data: diaData,
+            backgroundColor: diaData.map((v, i) => i === 0 ? 'rgba(229,62,62,.75)' : i === 1 ? 'rgba(56,161,105,.75)' : 'rgba(15,61,110,.65)'),
+            borderRadius: 5,
+          },
+          {
+            label: 'After WT',
+            data: diaData, // same as current per reference image
+            backgroundColor: diaData.map((v, i) => i === 0 ? 'rgba(229,62,62,.35)' : i === 1 ? 'rgba(56,161,105,.35)' : 'rgba(15,61,110,.3)'),
+            borderRadius: 5,
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 10, padding: 16 } } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { font: { size: 11 } } },
+          y: { grid: { color: gridColor }, beginAtZero: true, ticks: { stepSize: 1 },
+               title: { display: true, text: 'No. of Wheels', font: { size: 12 } } }
+        }
+      }
+    });
+
+    // ── 4. Defect Comparison Chart ──
+    const defectLabels = ['RD', 'RA', 'WD', 'MSU', 'Step JD', 'Step Thrower', 'Disc Crack', 'Bull Gear'];
+    new Chart(document.getElementById('defectChart'), {
+      type: 'bar',
+      data: {
+        labels: defectLabels,
+        datasets: [
+          { label: 'LW / PER', data: [0, 0, 0, 0, 0, 0, 0, 0], backgroundColor: 'rgba(15,61,110,.7)', borderRadius: 4 },
+          { label: 'GOC Shed', data: [16, 0, 0, 0, 0, 0, 0, 0], backgroundColor: 'rgba(229,62,62,.75)', borderRadius: 4 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 10, padding: 16 } } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { font: { size: 11 } } },
+          y: { grid: { color: gridColor }, beginAtZero: true, ticks: { stepSize: 2 },
+               title: { display: true, text: 'No. of Wheels', font: { size: 12 } } }
+        }
+      }
+    });
+  </script>
+
+  <script>
+    // Auth guard
+    (function() {
+      const u = sessionStorage.getItem('rt_user');
+      if (!u) { window.location.href = 'index.html'; return; }
+      const user = JSON.parse(u);
+      document.getElementById('topUser').textContent   = user.name  || 'User';
+      document.getElementById('topRole').textContent   = user.role  || 'Inspector';
+      document.getElementById('topAvatar').textContent = (user.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase();
+    })();
+    function logout() {
+      sessionStorage.removeItem('rt_user');
+      window.location.href = 'index.html';
+    }
+  </script>
+
+</body>
+</html>

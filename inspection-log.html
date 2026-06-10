@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inspection Log — RailTrack QR</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rail-blue:  #0a2a4a;
+      --rail-mid:   #0f3d6e;
+      --accent:     #f5a623;
+      --steel:      #c8d8e8;
+      --light-bg:   #edf2f7;
+      --white:      #ffffff;
+      --text-main:  #1a2b3c;
+      --text-muted: #607080;
+      --danger:     #e53e3e;
+      --success:    #276749;
+      --radius:     9px;
+      --sidebar-w:  230px;
+    }
+
+    body { min-height:100vh; background:var(--light-bg); font-family:'Segoe UI',system-ui,sans-serif; color:var(--text-main); display:flex; }
+
+    /* ── Sidebar ── */
+    .sidebar { width:var(--sidebar-w); background:var(--rail-blue); min-height:100vh; display:flex; flex-direction:column; flex-shrink:0; position:fixed; top:0; left:0; bottom:0; z-index:100; }
+    .sidebar-brand { padding:22px 20px 18px; border-bottom:1px solid rgba(255,255,255,.1); display:flex; align-items:center; gap:12px; }
+    .sidebar-brand .b-name { font-size:15px; font-weight:700; color:#fff; line-height:1.15; }
+    .sidebar-brand .b-sub  { font-size:10px; color:var(--steel); letter-spacing:1.5px; text-transform:uppercase; }
+    .sidebar nav { flex:1; padding:14px 0; }
+    .nav-item {
+      display:flex; align-items:center; gap:10px; padding:11px 20px;
+      font-size:13.5px; color:rgba(200,216,232,.75); cursor:pointer;
+      transition:background .15s,color .15s; border-left:3px solid transparent; text-decoration:none;
+    }
+    .nav-item:hover  { background:rgba(255,255,255,.07); color:#fff; }
+    .nav-item.active { background:rgba(245,166,35,.12); color:var(--accent); border-left-color:var(--accent); }
+    .nav-section { padding:14px 20px 5px; font-size:10px; font-weight:700; color:rgba(200,216,232,.35); text-transform:uppercase; letter-spacing:1.5px; border-top:1px solid rgba(255,255,255,.06); margin-top:6px; }
+    .sidebar-footer  { padding:16px 20px; border-top:1px solid rgba(255,255,255,.08); font-size:11.5px; color:rgba(200,216,232,.4); }
+    .nav-logout {
+      display:flex; align-items:center; gap:10px; padding:11px 20px; font-size:13.5px; color:rgba(248,113,113,.8);
+      cursor:pointer; border:none; background:none; width:100%; text-align:left;
+      border-left:3px solid transparent; transition:background .15s,color .15s;
+    }
+    .nav-logout:hover { background:rgba(248,113,113,.12); color:#fca5a5; border-left-color:#ef4444; }
+
+    /* ── Main ── */
+    .main { margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; }
+
+    .topbar {
+      background:var(--white); border-bottom:1px solid #dce6ef;
+      padding:0 28px; height:60px; display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:50;
+    }
+    .topbar-left { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted); }
+    .topbar-left span { color:var(--text-main); font-weight:600; }
+    .topbar-right { display:flex; align-items:center; gap:14px; }
+    .avatar { width:34px; height:34px; background:var(--rail-mid); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:700; }
+    .user-name { font-size:13px; font-weight:600; }
+    .user-role { font-size:11px; color:var(--text-muted); }
+
+    .page { padding:24px 28px 48px; }
+
+    /* ── Stat cards ── */
+    .stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:22px; }
+    .stat-card { background:var(--white); border-radius:12px; padding:16px 20px; box-shadow:0 2px 10px rgba(10,42,74,.07); display:flex; align-items:center; gap:14px; border-top:3px solid transparent; }
+    .stat-card.blue   { border-top-color:var(--rail-mid); }
+    .stat-card.green  { border-top-color:#38a169; }
+    .stat-card.red    { border-top-color:var(--danger); }
+    .stat-card.amber  { border-top-color:var(--accent); }
+    .stat-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .stat-icon.blue  { background:#e8f0f9; color:var(--rail-mid); }
+    .stat-icon.green { background:#f0fff4; color:#38a169; }
+    .stat-icon.red   { background:#fff5f5; color:var(--danger); }
+    .stat-icon.amber { background:#fff8e8; color:var(--accent); }
+    .stat-val { font-size:26px; font-weight:800; color:var(--rail-blue); line-height:1.1; }
+    .stat-lbl { font-size:12px; color:var(--text-muted); margin-top:2px; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      background:var(--white); border-radius:12px; box-shadow:0 2px 10px rgba(10,42,74,.07);
+      padding:16px 20px; margin-bottom:18px; display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;
+    }
+    .search-wrap { position:relative; flex:1; min-width:200px; }
+    .search-wrap svg.si { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:#94aab8; pointer-events:none; }
+    .search-wrap input {
+      width:100%; padding:9px 32px 9px 36px;
+      border:1.5px solid #d0dde8; border-radius:var(--radius);
+      font-size:13.5px; background:#f8fafc; outline:none; font-family:inherit;
+      transition:border-color .18s, box-shadow .18s;
+    }
+    .search-wrap input:focus { border-color:var(--rail-mid); box-shadow:0 0 0 3px rgba(15,61,110,.1); background:#fff; }
+    .search-clear { position:absolute; right:9px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#94aab8; font-size:16px; display:none; }
+    .search-clear:hover { color:var(--danger); }
+
+    .filter-group { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+    .filter-item { display:flex; flex-direction:column; gap:4px; }
+    .filter-item label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.4px; }
+    .filter-item select {
+      padding:9px 28px 9px 10px; border:1.5px solid #d0dde8; border-radius:var(--radius);
+      font-size:13px; background:#f8fafc; appearance:none; cursor:pointer; outline:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394aab8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 10px center;
+      transition:border-color .18s;
+    }
+    .filter-item select:focus { border-color:var(--rail-mid); box-shadow:0 0 0 3px rgba(15,61,110,.1); background-color:#fff; }
+
+    .toolbar-actions { display:flex; gap:8px; align-items:flex-end; margin-left:auto; }
+    .btn { padding:9px 16px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; border:none; display:inline-flex; align-items:center; gap:6px; transition:opacity .18s,transform .1s; white-space:nowrap; text-decoration:none; }
+    .btn:active { transform:scale(.97); }
+    .btn-ghost   { background:transparent; color:var(--text-muted); border:1.5px solid #d0dde8; }
+    .btn-ghost:hover { background:#e8eef5; }
+    .btn-primary { background:linear-gradient(135deg,var(--rail-mid),var(--rail-blue)); color:#fff; }
+    .btn-primary:hover { opacity:.9; }
+
+    /* ── Active filter tags ── */
+    .active-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; min-height:0; }
+    .filter-tag { display:inline-flex; align-items:center; gap:6px; background:#e8f0f9; color:var(--rail-mid); padding:4px 10px; border-radius:20px; font-size:12px; font-weight:600; }
+    .filter-tag button { background:none; border:none; cursor:pointer; color:var(--rail-mid); font-size:14px; line-height:1; padding:0; }
+    .filter-tag button:hover { color:var(--danger); }
+
+    /* ── Result info ── */
+    .result-info { font-size:12.5px; color:var(--text-muted); margin-bottom:10px; }
+
+    /* ── Table card ── */
+    .table-card { background:var(--white); border-radius:12px; box-shadow:0 2px 10px rgba(10,42,74,.07); overflow:hidden; }
+    .table-wrap  { overflow-x:auto; }
+
+    table.log-table { width:100%; border-collapse:collapse; font-size:13px; min-width:1020px; }
+    .log-table thead th {
+      background:var(--rail-blue); color:#fff; padding:11px 14px;
+      text-align:left; font-weight:600; font-size:12px; letter-spacing:.3px;
+      white-space:nowrap; cursor:pointer; user-select:none;
+    }
+    .log-table thead th:hover   { background:#0d3360; }
+    .log-table thead th.sorted  { background:#164e8a; }
+    .sort-icon { margin-left:4px; opacity:.5; font-size:10px; }
+    .log-table thead th.sorted .sort-icon { opacity:1; }
+
+    .log-table tbody tr { border-bottom:1px solid #edf2f7; transition:background .12s; }
+    .log-table tbody tr:hover { background:#f0f7ff; }
+    .log-table tbody tr:last-child { border-bottom:none; }
+    .log-table td { padding:10px 14px; vertical-align:middle; }
+
+    .cell-id     { font-family:monospace; font-size:12px; color:var(--text-muted); }
+    .cell-dt     { font-size:12px; }
+    .cell-dt .date { font-weight:600; color:var(--text-main); }
+    .cell-dt .time { color:var(--text-muted); font-size:11.5px; }
+    .cell-axle   { font-weight:700; color:var(--rail-blue); }
+    .cell-loco   { font-family:monospace; font-size:12.5px; color:var(--text-muted); }
+    .cell-insp   { font-size:13px; }
+
+    /* type badge */
+    .type-badge {
+      display:inline-flex; align-items:center; gap:4px;
+      padding:3px 9px; border-radius:6px; font-size:11.5px; font-weight:600;
+    }
+    .type-visual     { background:#eff6ff; color:#1d4ed8; }
+    .type-dimensional{ background:#faf5ff; color:#6b21a8; }
+    .type-msu        { background:#fff7ed; color:#c2410c; }
+    .type-profile    { background:#f0fdf4; color:#15803d; }
+    .type-bull       { background:#fefce8; color:#854d0e; }
+    .type-ultrasonic { background:#f0f9ff; color:#0369a1; }
+
+    /* status badge */
+    .status-badge {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:4px 10px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap;
+    }
+    .status-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .status-pass    { background:#f0fff4; color:#276749; border:1px solid #9ae6b4; }
+    .status-pass    .status-dot { background:#38a169; }
+    .status-fail    { background:#fff5f5; color:var(--danger); border:1px solid #feb2b2; }
+    .status-fail    .status-dot { background:var(--danger); }
+    .status-pending { background:#fffbeb; color:#92600a; border:1px solid #fbd38d; }
+    .status-pending .status-dot { background:var(--accent); }
+
+    /* findings */
+    .finding-tag {
+      display:inline-block; max-width:180px; overflow:hidden; text-overflow:ellipsis;
+      background:#f8fafc; border:1px solid #e2e8f0; color:var(--text-muted);
+      padding:2px 8px; border-radius:4px; font-size:11.5px; white-space:nowrap;
+    }
+    .finding-tag.warn { background:#fff8e8; border-color:#fbd38d; color:#92600a; }
+    .finding-tag.crit { background:#fff5f5; border-color:#feb2b2; color:var(--danger); }
+
+    /* action buttons */
+    .action-btns { display:flex; gap:6px; }
+    .icon-btn { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; transition:background .15s; }
+    .icon-btn.view   { background:#e8f0f9; color:var(--rail-mid); }
+    .icon-btn.edit   { background:#f0fff4; color:#276749; }
+    .icon-btn.view:hover { background:#c8d8f0; }
+    .icon-btn.edit:hover { background:#c6f6d5; }
+
+    /* empty state */
+    .empty-state { padding:60px 20px; text-align:center; color:var(--text-muted); display:none; }
+    .empty-state svg { margin-bottom:12px; opacity:.3; }
+
+    /* ── Pagination ── */
+    .pagination-bar { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-top:1px solid #edf2f7; flex-wrap:wrap; gap:10px; }
+    .pagination-info { font-size:12.5px; color:var(--text-muted); }
+    .pagination-btns { display:flex; gap:4px; }
+    .page-btn { min-width:32px; height:32px; padding:0 8px; border-radius:7px; border:1.5px solid #d0dde8; background:var(--white); color:var(--text-main); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s,border-color .15s; }
+    .page-btn:hover    { background:#e8f0f9; border-color:var(--rail-mid); }
+    .page-btn.active   { background:var(--rail-mid); color:#fff; border-color:var(--rail-mid); font-weight:700; }
+    .page-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .per-page-wrap { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-muted); }
+    .per-page-wrap select { padding:5px 22px 5px 8px; border:1.5px solid #d0dde8; border-radius:7px; font-size:12.5px; background:#f8fafc; appearance:none; cursor:pointer; outline:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2394aab8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 6px center; }
+
+    /* ── Detail drawer ── */
+    .drawer-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:200; display:none; }
+    .drawer-overlay.open { display:block; }
+    .drawer {
+      position:fixed; top:0; right:0; bottom:0; width:440px; max-width:95vw;
+      background:var(--white); z-index:201; box-shadow:-8px 0 32px rgba(0,0,0,.18);
+      display:flex; flex-direction:column;
+      transform:translateX(100%); transition:transform .28s cubic-bezier(.4,0,.2,1);
+    }
+    .drawer.open { transform:translateX(0); }
+    .drawer-head { padding:20px 24px 16px; border-bottom:1px solid #e8eef5; display:flex; align-items:center; justify-content:space-between; background:var(--rail-blue); }
+    .drawer-head h3 { font-size:15px; font-weight:700; color:#fff; }
+    .drawer-close { background:none; border:none; cursor:pointer; color:rgba(255,255,255,.7); font-size:22px; line-height:1; padding:2px 6px; border-radius:6px; }
+    .drawer-close:hover { color:#fff; background:rgba(255,255,255,.1); }
+    .drawer-body { flex:1; overflow-y:auto; padding:20px 24px; }
+    .drawer-section { margin-bottom:20px; }
+    .drawer-section h4 { font-size:11.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.6px; margin-bottom:12px; padding-bottom:6px; border-bottom:1px solid #e8eef5; }
+    .detail-row { display:flex; justify-content:space-between; align-items:flex-start; padding:7px 0; border-bottom:1px solid #f8fafc; gap:12px; }
+    .detail-row:last-child { border-bottom:none; }
+    .detail-lbl { font-size:12.5px; color:var(--text-muted); flex-shrink:0; width:130px; }
+    .detail-val { font-size:13px; font-weight:600; color:var(--text-main); text-align:right; }
+
+    @media (max-width:760px) {
+      :root { --sidebar-w:0px; }
+      .sidebar { display:none; }
+      .main    { margin-left:0; }
+      .page    { padding:16px 14px 40px; }
+      .stat-row { grid-template-columns:1fr 1fr; }
+      .toolbar { flex-direction:column; align-items:stretch; }
+      .toolbar-actions { margin-left:0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg width="34" height="34" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r="24" stroke="#f5a623" stroke-width="3.5"/>
+        <circle cx="26" cy="26" r="7" fill="#f5a623"/>
+        <circle cx="26" cy="26" r="3.5" fill="#0a2a4a"/>
+        <line x1="26" y1="2" x2="26" y2="50" stroke="#f5a623" stroke-width="2.5"/>
+        <line x1="2" y1="26" x2="50" y2="26" stroke="#f5a623" stroke-width="2.5"/>
+        <line x1="9.5" y1="9.5" x2="42.5" y2="42.5" stroke="#f5a623" stroke-width="2.5"/>
+        <line x1="42.5" y1="9.5" x2="9.5" y2="42.5" stroke="#f5a623" stroke-width="2.5"/>
+        <circle cx="26" cy="26" r="14" stroke="#f5a623" stroke-width="1.5" stroke-dasharray="4 4"/>
+      </svg>
+      <div><div class="b-name">RailTrack QR</div><div class="b-sub">Asset Mgmt</div></div>
+    </div>
+    <nav>
+      <a class="nav-item" href="dashboard.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.293l6 6V13.5a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5v-3h-2v3a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5V9.293l6-6zm-5 6.707V13h3v-3h4v3h3V9.707L8 4.707 3 9.707z"/><path d="M13 2.5V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" href="wheel-list.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3 4.5h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2zm0 3h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2zm0 3h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2z"/></svg>
+        Wheel Assets
+      </a>
+      <a class="nav-item active" href="inspection-log.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3zm2 3.5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1H5z"/></svg>
+        Inspection Log
+      </a>
+      <a class="nav-item" href="activity-log.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
+        Activity Log
+      </a>
+      <a class="nav-item" href="#" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3zm1 3h8a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1zm0 2h8a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1zm0 2h5a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1z"/></svg>
+        Reports
+      </a>
+      <a class="nav-item" href="settings.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/></svg>
+        Settings
+      </a>
+      <div class="nav-section">User Management</div>
+      <a class="nav-item" href="users.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/></svg>
+        Users
+      </a>
+      <a class="nav-item" href="groups.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002H7.022zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>
+        Groups
+      </a>
+    </nav>
+    <button class="nav-logout" onclick="logout()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/><path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/></svg>
+      Logout
+    </button>
+    <div class="sidebar-footer">WAG 7 · ELS/ED · v2.4.1</div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+
+    <div class="topbar">
+      <div class="topbar-left">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3zm2 3.5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1H5z"/></svg>
+        &nbsp;<span>Inspection Log</span>
+      </div>
+      <div class="topbar-right">
+        <div style="text-align:right">
+          <div class="user-name" id="topUser">—</div>
+          <div class="user-role" id="topRole">—</div>
+        </div>
+        <div class="avatar" id="topAvatar">—</div>
+      </div>
+    </div>
+
+    <div class="page">
+
+      <!-- Stat Cards -->
+      <div class="stat-row">
+        <div class="stat-card blue">
+          <div class="stat-icon blue">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3zm2 2h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1zm0 2h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1zm0 2h4a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1z"/></svg>
+          </div>
+          <div><div class="stat-val" id="scTotal">—</div><div class="stat-lbl">Total Inspections</div></div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon green">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425z"/><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/></svg>
+          </div>
+          <div><div class="stat-val" id="scPass">—</div><div class="stat-lbl">Passed</div></div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-icon red">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+          </div>
+          <div><div class="stat-val" id="scFail">—</div><div class="stat-lbl">Failed</div></div>
+        </div>
+        <div class="stat-card amber">
+          <div class="stat-icon amber">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.553.553 0 0 1-1.1 0L7.1 4.995z"/></svg>
+          </div>
+          <div><div class="stat-val" id="scPending">—</div><div class="stat-lbl">Pending</div></div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg class="si" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.156a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/></svg>
+          <input type="text" id="searchInput" placeholder="Search ID, axle, loco, inspector, findings…" oninput="onSearch()" />
+          <button class="search-clear" id="searchClear" onclick="clearSearch()">×</button>
+        </div>
+        <div class="filter-group">
+          <div class="filter-item">
+            <label>Status</label>
+            <select id="filterStatus" onchange="applyFilters()">
+              <option value="">All Status</option>
+              <option value="Pass">Pass</option>
+              <option value="Fail">Fail</option>
+              <option value="Pending">Pending</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>Type</label>
+            <select id="filterType" onchange="applyFilters()">
+              <option value="">All Types</option>
+              <option value="Visual">Visual</option>
+              <option value="Dimensional">Dimensional</option>
+              <option value="MSU Check">MSU Check</option>
+              <option value="Profile Check">Profile Check</option>
+              <option value="Bull Gear">Bull Gear</option>
+              <option value="Ultrasonic">Ultrasonic</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>Inspector</label>
+            <select id="filterInspector" onchange="applyFilters()">
+              <option value="">All Inspectors</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>Date From</label>
+            <select id="filterMonth" onchange="applyFilters()">
+              <option value="">All Dates</option>
+              <option value="03.2026">Mar 2026</option>
+              <option value="04.2026">Apr 2026</option>
+              <option value="05.2026">May 2026</option>
+            </select>
+          </div>
+        </div>
+        <div class="toolbar-actions">
+          <button class="btn btn-ghost" onclick="resetFilters()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></svg>
+            Reset
+          </button>
+          <button class="btn btn-ghost" onclick="exportCSV()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+            Export CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Active tags -->
+      <div class="active-filters" id="activeTags"></div>
+      <div class="result-info" id="resultInfo"></div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <div class="table-wrap">
+          <table class="log-table" id="logTable">
+            <thead>
+              <tr>
+                <th onclick="sortBy('id')"       data-col="id">Insp. ID<span class="sort-icon" id="si-id">↕</span></th>
+                <th onclick="sortBy('date')"      data-col="date">Date &amp; Time<span class="sort-icon" id="si-date">↕</span></th>
+                <th onclick="sortBy('axle')"      data-col="axle">Axle No.<span class="sort-icon" id="si-axle">↕</span></th>
+                <th onclick="sortBy('loco')"      data-col="loco">Loco No.<span class="sort-icon" id="si-loco">↕</span></th>
+                <th onclick="sortBy('inspector')" data-col="inspector">Inspector<span class="sort-icon" id="si-inspector">↕</span></th>
+                <th onclick="sortBy('type')"      data-col="type">Type<span class="sort-icon" id="si-type">↕</span></th>
+                <th>Findings</th>
+                <th onclick="sortBy('action')"    data-col="action">Action Taken<span class="sort-icon" id="si-action">↕</span></th>
+                <th onclick="sortBy('status')"    data-col="status">Status<span class="sort-icon" id="si-status">↕</span></th>
+                <th style="cursor:default">View</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <div class="empty-state" id="emptyState">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#c8d8e8" viewBox="0 0 16 16"><path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3zm2 3.5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1H5z"/></svg>
+            <p>No inspection records match the current filters.</p>
+            <button class="btn btn-ghost" style="margin:12px auto 0" onclick="resetFilters()">Clear Filters</button>
+          </div>
+        </div>
+        <div class="pagination-bar" id="paginationBar">
+          <div class="pagination-info" id="pageInfo"></div>
+          <div class="pagination-btns" id="pageBtns"></div>
+          <div class="per-page-wrap">
+            Rows per page
+            <select id="perPageSelect" onchange="changePerPage()">
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Detail Drawer -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-head">
+      <h3 id="drawerTitle">Inspection Detail</h3>
+      <button class="drawer-close" onclick="closeDrawer()">×</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </div>
+
+  <script>
+  // ── Data ──
+  const LOGS = [
+    { id:'INS-001', date:'06.04.2026', time:'08:15', axle:'HH 34-63',  loco:'27497/5', inspector:'A. Kumar',    type:'Visual',      findings:'Diameter below 1030mm limit',        action:'Marked for Scrap',         status:'Fail',    notes:'Wheel diameter 1028mm – below condemn limit.' },
+    { id:'INS-002', date:'06.04.2026', time:'08:40', axle:'HH-80-39',  loco:'27906/4', inspector:'A. Kumar',    type:'Dimensional',  findings:'Within acceptable limits',           action:'Sent to HR Shop',          status:'Pass',    notes:'All measurements within tolerance.' },
+    { id:'INS-003', date:'06.04.2026', time:'09:05', axle:'HH-01973',  loco:'27906/6', inspector:'R. Sharma',   type:'Profile Check',findings:'Profile within limits',              action:'Sent to HR Shop',          status:'Pass',    notes:'PE 2.74/0.99, CE 2.74/1.34 – acceptable.' },
+    { id:'INS-004', date:'06.04.2026', time:'09:30', axle:'SHR-301',   loco:'27906/2', inspector:'R. Sharma',   type:'Visual',      findings:'Sharp flange detected',              action:'Sent to HR Shop – urgent', status:'Fail',    notes:'Flange sharpness exceeds permissible limit. Immediate WT required.' },
+    { id:'INS-005', date:'14.03.2023', time:'10:00', axle:'HH-01786',  loco:'24602/4', inspector:'A. Kumar',    type:'Dimensional',  findings:'Diameter at condemn limit',          action:'Marked for Scrap',         status:'Fail',    notes:'Dia 1036mm at lower bound. History shows repeated wear.' },
+    { id:'INS-006', date:'14.02.2025', time:'11:00', axle:'AC-1614',   loco:'27654/2', inspector:'S. Pillai',   type:'Visual',      findings:'No visible defects',                 action:'Sent to Wheel Park',       status:'Pass',    notes:'Minor surface scoring, within acceptable limits.' },
+    { id:'INS-007', date:'06.04.2026', time:'11:30', axle:'HH-01972',  loco:'27906/1', inspector:'A. Kumar',    type:'Dimensional',  findings:'Measurement pending verification',   action:'Re-measurement scheduled', status:'Pending', notes:'Initial reading inconsistent. Second inspection needed.' },
+    { id:'INS-008', date:'06.04.2026', time:'13:00', axle:'ELW 2476',  loco:'27906/3', inspector:'R. Sharma',   type:'Profile Check',findings:'Profile acceptable',                 action:'Sent to HR Shop',          status:'Pass',    notes:'PE 2.67/0.71 within limits.' },
+    { id:'INS-009', date:'12.03.2026', time:'09:00', axle:'HH-57-36',  loco:'27467/1', inspector:'S. Pillai',   type:'Visual',      findings:'Tread wear beyond limit',            action:'Marked for Scrap',         status:'Fail',    notes:'Root wear 1.74 exceeds post-WT limit of 1.5.' },
+    { id:'INS-010', date:'16.03.2026', time:'10:15', axle:'HH-41-36',  loco:'27490/4', inspector:'A. Kumar',    type:'Profile Check',findings:'Profile PE 3.98 – above limit',      action:'Marked for Scrap',         status:'Fail',    notes:'Root wear 3.98 far exceeds condemn limit.' },
+    { id:'INS-011', date:'17.03.2026', time:'08:30', axle:'HH-14-39',  loco:'24656/1', inspector:'R. Sharma',   type:'Bull Gear',   findings:'Bull gear teeth suspected damage',   action:'Marked for Scrap – hold',  status:'Fail',    notes:'Visual crack patterns on bull gear teeth. Ultrasonic test ordered.' },
+    { id:'INS-012', date:'17.03.2026', time:'09:45', axle:'HH-14-39',  loco:'24656/1', inspector:'D. Nair',     type:'Ultrasonic',  findings:'Subsurface crack confirmed',         action:'Condemned – scrap',        status:'Fail',    notes:'UT confirms internal crack at 12mm depth on gear tooth root.' },
+    { id:'INS-013', date:'02.05.2026', time:'08:00', axle:'HH-90-30',  loco:'27472/4', inspector:'A. Kumar',    type:'Dimensional',  findings:'Within limits – measurement done',   action:'Sent to HR Shop',          status:'Pass',    notes:'Dia 1053mm, MSU play not yet measured.' },
+    { id:'INS-014', date:'02.05.2026', time:'08:45', axle:'HH-61-83',  loco:'27472/5', inspector:'S. Pillai',   type:'Visual',      findings:'No defects observed',                action:'Sent to HR Shop',          status:'Pass',    notes:'Clean tread and flange profile.' },
+    { id:'INS-015', date:'02.05.2026', time:'09:30', axle:'HH-01418',  loco:'27472/6', inspector:'R. Sharma',   type:'Profile Check',findings:'Profile within tolerance',           action:'Sent to HR Shop',          status:'Pass',    notes:'PE 2.80/0.93 acceptable.' },
+    { id:'INS-016', date:'30.04.2026', time:'07:50', axle:'HH-01-21',  loco:'27472/1', inspector:'A. Kumar',    type:'MSU Check',   findings:'MSU play 1.13mm – within range',     action:'Sent to HR Shop',          status:'Pass',    notes:'MSU within 1.5mm post-WT limit.' },
+    { id:'INS-017', date:'30.04.2026', time:'08:20', axle:'HH-53-06',  loco:'27472/2', inspector:'D. Nair',     type:'MSU Check',   findings:'MSU play 0.28mm – normal',           action:'Sent to HR Shop',          status:'Pass',    notes:'Low MSU play indicates good axle box condition.' },
+    { id:'INS-018', date:'30.04.2026', time:'09:00', axle:'HH-60-48',  loco:'27472/3', inspector:'A. Kumar',    type:'MSU Check',   findings:'MSU play 1.64mm – above post-WT limit', action:'Re-inspection ordered',   status:'Pending', notes:'Post-WT MSU limit is 1.5mm. Requires re-check after truing.' },
+    { id:'INS-019', date:'06.03.2026', time:'10:00', axle:'HH-37-75',  loco:'27632/1', inspector:'S. Pillai',   type:'Visual',      findings:'No visible defects',                 action:'Sent to Wheel Park',       status:'Pass',    notes:'Good condition, minor flange wear within limits.' },
+    { id:'INS-020', date:'24.03.2026', time:'11:00', axle:'SHH-129',   loco:'27632/4', inspector:'R. Sharma',   type:'Dimensional',  findings:'Root wear 1.42 – borderline',        action:'Marked for Scrap',         status:'Fail',    notes:'Dia 1068mm but wear profile concerning. Condemned for safety.' },
+    { id:'INS-021', date:'20.03.2026', time:'14:00', axle:'HH-48-35',  loco:'GOC/TPJ', inspector:'D. Nair',     type:'Visual',      findings:'No measurable wear (0.0/0.0)',        action:'Sent to HR Shop',          status:'Pass',    notes:'Profile readings all zero – gauge calibration check recommended.' },
+    { id:'INS-022', date:'02.05.2026', time:'15:30', axle:'HH 52-91',  loco:'27471/4', inspector:'A. Kumar',    type:'Visual',      findings:'Initial inspection pending',         action:'Awaiting wheel shop entry',status:'Pending', notes:'Wheel just arrived. Full dimensional inspection not yet done.' },
+  ];
+
+  // ── State ──
+  let filtered    = [...LOGS];
+  let sortCol     = 'date';
+  let sortDir     = 'desc';
+  let currentPage = 1;
+  let perPage     = 10;
+
+  // ── Init ──
+  const inspectors = [...new Set(LOGS.map(l => l.inspector))].sort();
+  const iSel = document.getElementById('filterInspector');
+  inspectors.forEach(i => { const o = document.createElement('option'); o.value = i; o.textContent = i; iSel.appendChild(o); });
+
+  doSort(); render();
+
+  // ── Search ──
+  function onSearch() {
+    const v = document.getElementById('searchInput').value;
+    document.getElementById('searchClear').style.display = v ? 'flex' : 'none';
+    applyFilters();
+  }
+  function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchClear').style.display = 'none';
+    applyFilters();
+  }
+
+  // ── Filters ──
+  function applyFilters() {
+    const q     = document.getElementById('searchInput').value.trim().toLowerCase();
+    const st    = document.getElementById('filterStatus').value;
+    const tp    = document.getElementById('filterType').value;
+    const insp  = document.getElementById('filterInspector').value;
+    const month = document.getElementById('filterMonth').value;
+
+    filtered = LOGS.filter(l => {
+      if (q && !`${l.id} ${l.axle} ${l.loco} ${l.inspector} ${l.findings} ${l.action} ${l.notes}`.toLowerCase().includes(q)) return false;
+      if (st   && l.status    !== st)   return false;
+      if (tp   && l.type      !== tp)   return false;
+      if (insp && l.inspector !== insp) return false;
+      if (month && !l.date.endsWith(month)) return false;
+      return true;
+    });
+
+    doSort(); currentPage = 1; renderActiveTags(); render();
+  }
+
+  function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchClear').style.display = 'none';
+    ['filterStatus','filterType','filterInspector','filterMonth'].forEach(id => document.getElementById(id).value = '');
+    filtered = [...LOGS]; doSort(); currentPage = 1; renderActiveTags(); render();
+  }
+
+  function renderActiveTags() {
+    const st    = document.getElementById('filterStatus').value;
+    const tp    = document.getElementById('filterType').value;
+    const insp  = document.getElementById('filterInspector').value;
+    const month = document.getElementById('filterMonth').value;
+    const q     = document.getElementById('searchInput').value.trim();
+    const cont  = document.getElementById('activeTags');
+    cont.innerHTML = '';
+    const add = (label, clear) => {
+      const d = document.createElement('div'); d.className = 'filter-tag';
+      d.innerHTML = `${label} <button onclick="${clear}">×</button>`; cont.appendChild(d);
+    };
+    if (q)     add(`"${q}"`, `clearSearch()`);
+    if (st)    add(`Status: ${st}`, `document.getElementById('filterStatus').value='';applyFilters()`);
+    if (tp)    add(`Type: ${tp}`, `document.getElementById('filterType').value='';applyFilters()`);
+    if (insp)  add(`Inspector: ${insp}`, `document.getElementById('filterInspector').value='';applyFilters()`);
+    if (month) add(`Month: ${month}`, `document.getElementById('filterMonth').value='';applyFilters()`);
+  }
+
+  // ── Sort ──
+  function sortBy(col) {
+    sortDir = sortCol === col ? (sortDir === 'asc' ? 'desc' : 'asc') : 'asc';
+    sortCol = col;
+    doSort(); render();
+  }
+  function doSort() {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    filtered.sort((a, b) => {
+      let av, bv;
+      switch (sortCol) {
+        case 'id':        av = a.id;        bv = b.id;        break;
+        case 'axle':      av = a.axle;      bv = b.axle;      break;
+        case 'loco':      av = a.loco;      bv = b.loco;      break;
+        case 'inspector': av = a.inspector; bv = b.inspector; break;
+        case 'type':      av = a.type;      bv = b.type;      break;
+        case 'action':    av = a.action;    bv = b.action;    break;
+        case 'status':    av = a.status;    bv = b.status;    break;
+        case 'date': {
+          const p = s => { const x = s.split('.'); return parseInt(x[2])*10000+parseInt(x[1])*100+parseInt(x[0]); };
+          av = p(a.date); bv = p(b.date); break;
+        }
+        default: return 0;
+      }
+      return av < bv ? -dir : av > bv ? dir : 0;
+    });
+  }
+
+  // ── Render ──
+  function render() {
+    updateSortIcons(); updateStats();
+    const start = (currentPage - 1) * perPage;
+    const page  = filtered.slice(start, start + perPage);
+    const body  = document.getElementById('tableBody');
+    const empty = document.getElementById('emptyState');
+    if (!filtered.length) { body.innerHTML = ''; empty.style.display = 'block'; }
+    else { empty.style.display = 'none'; body.innerHTML = page.map(rowHTML).join(''); }
+    renderPagination();
+    document.getElementById('resultInfo').textContent =
+      filtered.length < LOGS.length
+        ? `Showing ${filtered.length} of ${LOGS.length} records`
+        : `${LOGS.length} records total`;
+  }
+
+  function rowHTML(l) {
+    const typeMap = { 'Visual':'type-visual','Dimensional':'type-dimensional','MSU Check':'type-msu','Profile Check':'type-profile','Bull Gear':'type-bull','Ultrasonic':'type-ultrasonic' };
+    const statusMap = { 'Pass':'status-pass','Fail':'status-fail','Pending':'status-pending' };
+    const findingClass = l.status === 'Fail' ? 'crit' : l.status === 'Pending' ? 'warn' : '';
+    return `
+    <tr>
+      <td class="cell-id">${l.id}</td>
+      <td class="cell-dt"><div class="date">${l.date}</div><div class="time">${l.time}</div></td>
+      <td class="cell-axle">${l.axle}</td>
+      <td class="cell-loco">${l.loco}</td>
+      <td class="cell-insp">${l.inspector}</td>
+      <td><span class="type-badge ${typeMap[l.type]||'type-visual'}">${l.type}</span></td>
+      <td><span class="finding-tag ${findingClass}" title="${l.findings}">${l.findings}</span></td>
+      <td style="font-size:12.5px;color:var(--text-muted);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${l.action}">${l.action}</td>
+      <td><span class="status-badge ${statusMap[l.status]||'status-pending'}"><span class="status-dot"></span>${l.status}</span></td>
+      <td>
+        <button class="icon-btn view" title="View details" onclick="openDrawer('${l.id}')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  }
+
+  // ── Stats ──
+  function updateStats() {
+    const src = filtered;
+    document.getElementById('scTotal').textContent   = src.length;
+    document.getElementById('scPass').textContent    = src.filter(l=>l.status==='Pass').length;
+    document.getElementById('scFail').textContent    = src.filter(l=>l.status==='Fail').length;
+    document.getElementById('scPending').textContent = src.filter(l=>l.status==='Pending').length;
+  }
+
+  // ── Sort icons ──
+  function updateSortIcons() {
+    document.querySelectorAll('th[data-col]').forEach(th => {
+      const col = th.dataset.col;
+      const ico = document.getElementById(`si-${col}`);
+      if (!ico) return;
+      th.classList.toggle('sorted', col === sortCol);
+      ico.textContent = col !== sortCol ? '↕' : sortDir === 'asc' ? '↑' : '↓';
+    });
+  }
+
+  // ── Pagination ──
+  function renderPagination() {
+    const total = filtered.length;
+    const pages = Math.max(1, Math.ceil(total / perPage));
+    const start = Math.min((currentPage - 1) * perPage + 1, total);
+    const end   = Math.min(currentPage * perPage, total);
+    document.getElementById('pageInfo').textContent = total === 0 ? 'No results' : `${start}–${end} of ${total}`;
+    const cont = document.getElementById('pageBtns'); cont.innerHTML = '';
+    const addBtn = (label, page, disabled, isActive) => {
+      const b = document.createElement('button');
+      b.className = 'page-btn' + (isActive ? ' active' : '');
+      b.innerHTML = label; b.disabled = disabled;
+      if (!disabled) b.onclick = () => { currentPage = page; render(); };
+      cont.appendChild(b);
+    };
+    addBtn('&laquo;', 1, currentPage===1, false);
+    addBtn('&lsaquo;', currentPage-1, currentPage===1, false);
+    let lo = Math.max(1,currentPage-2), hi = Math.min(pages,lo+4); lo = Math.max(1,hi-4);
+    for (let p=lo; p<=hi; p++) addBtn(p, p, false, p===currentPage);
+    addBtn('&rsaquo;', currentPage+1, currentPage===pages, false);
+    addBtn('&raquo;', pages, currentPage===pages, false);
+  }
+  function changePerPage() { perPage = parseInt(document.getElementById('perPageSelect').value); currentPage=1; render(); }
+
+  // ── Drawer ──
+  function openDrawer(id) {
+    const l = LOGS.find(x => x.id === id);
+    if (!l) return;
+    const typeMap = { 'Visual':'type-visual','Dimensional':'type-dimensional','MSU Check':'type-msu','Profile Check':'type-profile','Bull Gear':'type-bull','Ultrasonic':'type-ultrasonic' };
+    const statusMap = { 'Pass':'status-pass','Fail':'status-fail','Pending':'status-pending' };
+    document.getElementById('drawerTitle').textContent = `${l.id} — ${l.axle}`;
+    document.getElementById('drawerBody').innerHTML = `
+      <div class="drawer-section">
+        <h4>Asset Details</h4>
+        ${dr('Axle No.', `<strong>${l.axle}</strong>`)}
+        ${dr('Loco No.', l.loco)}
+        ${dr('Date', l.date)}
+        ${dr('Time', l.time)}
+      </div>
+      <div class="drawer-section">
+        <h4>Inspection Info</h4>
+        ${dr('Inspection ID', `<span style="font-family:monospace">${l.id}</span>`)}
+        ${dr('Inspector', l.inspector)}
+        ${dr('Type', `<span class="type-badge ${typeMap[l.type]||''}">${l.type}</span>`)}
+        ${dr('Status', `<span class="status-badge ${statusMap[l.status]||''}" style="justify-content:flex-end"><span class="status-dot"></span>${l.status}</span>`)}
+      </div>
+      <div class="drawer-section">
+        <h4>Findings &amp; Action</h4>
+        ${dr('Findings', l.findings)}
+        ${dr('Action Taken', l.action)}
+      </div>
+      <div class="drawer-section">
+        <h4>Notes</h4>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.6;background:#f8fafc;padding:12px;border-radius:8px;border:1px solid #e8eef5">${l.notes}</p>
+      </div>`;
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('drawerOverlay').classList.add('open');
+  }
+  function dr(label, val) {
+    return `<div class="detail-row"><span class="detail-lbl">${label}</span><span class="detail-val">${val}</span></div>`;
+  }
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
+  }
+
+  // ── Export CSV ──
+  function exportCSV() {
+    const headers = ['ID','Date','Time','Axle No','Loco No','Inspector','Type','Findings','Action Taken','Status','Notes'];
+    const rows = filtered.map(l => [l.id,l.date,l.time,l.axle,l.loco,l.inspector,l.type,l.findings,l.action,l.status,l.notes].map(v=>`"${v}"`).join(','));
+    const csv  = [headers.join(','), ...rows].join('\n');
+    const link = document.createElement('a');
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    link.download = 'inspection_log_' + new Date().toISOString().slice(0,10) + '.csv';
+    link.click();
+  }
+
+  // ── Auth ──
+  (function() {
+    const u = sessionStorage.getItem('rt_user');
+    if (!u) { window.location.href = 'index.html'; return; }
+    const user = JSON.parse(u);
+    document.getElementById('topUser').textContent   = user.name  || 'User';
+    document.getElementById('topRole').textContent   = user.role  || 'Inspector';
+    document.getElementById('topAvatar').textContent = (user.name || 'U').split(' ').map(w=>w[0]).join('').toUpperCase();
+  })();
+  function logout() { sessionStorage.removeItem('rt_user'); window.location.href = 'index.html'; }
+  </script>
+</body>
+</html>

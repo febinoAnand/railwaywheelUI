@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings — RailTrack QR</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rail-blue:  #0a2a4a;
+      --rail-mid:   #0f3d6e;
+      --accent:     #f5a623;
+      --steel:      #c8d8e8;
+      --light-bg:   #edf2f7;
+      --white:      #ffffff;
+      --text-main:  #1a2b3c;
+      --text-muted: #607080;
+      --danger:     #e53e3e;
+      --success:    #276749;
+      --radius:     10px;
+      --sidebar-w:  230px;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--light-bg);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: var(--text-main);
+      display: flex;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--rail-blue);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+    .sidebar-brand {
+      padding: 22px 20px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .sidebar-brand .b-name { font-size: 15px; font-weight: 700; color: var(--white); line-height: 1.15; }
+    .sidebar-brand .b-sub  { font-size: 10px; color: var(--steel); letter-spacing: 1.5px; text-transform: uppercase; }
+    .sidebar nav { flex: 1; padding: 14px 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 20px;
+      font-size: 13.5px; color: rgba(200,216,232,.75);
+      cursor: pointer; transition: background .15s, color .15s;
+      border-left: 3px solid transparent; text-decoration: none;
+    }
+    .nav-item:hover  { background: rgba(255,255,255,.07); color: var(--white); }
+    .nav-item.active { background: rgba(245,166,35,.12); color: var(--accent); border-left-color: var(--accent); }
+    .nav-section { padding:14px 20px 5px; font-size:10px; font-weight:700; color:rgba(200,216,232,.35); text-transform:uppercase; letter-spacing:1.5px; border-top:1px solid rgba(255,255,255,.06); margin-top:6px; }
+    .sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,.08); font-size: 11.5px; color: rgba(200,216,232,.4); }
+    .nav-logout {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 20px; font-size: 13.5px; color: rgba(248,113,113,.8);
+      cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+      border-left: 3px solid transparent; transition: background .15s, color .15s;
+    }
+    .nav-logout:hover { background: rgba(248,113,113,.12); color: #fca5a5; border-left-color: #ef4444; }
+
+    /* ── Main ── */
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    .topbar {
+      background: var(--white);
+      border-bottom: 1px solid #dce6ef;
+      padding: 0 28px;
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-title { font-size: 16px; font-weight: 700; color: var(--rail-blue); }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .avatar {
+      width: 34px; height: 34px; background: var(--rail-mid); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--white); font-size: 13px; font-weight: 700;
+    }
+    .user-name { font-size: 13px; font-weight: 600; }
+    .user-role { font-size: 11px; color: var(--text-muted); }
+
+    /* ── Page ── */
+    .page { padding: 28px 28px 48px; }
+
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 20px; font-weight: 700; color: var(--rail-blue); }
+    .page-header p  { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── Settings sections ── */
+    .settings-group {
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(10,42,74,.07);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .settings-group-head {
+      padding: 16px 22px;
+      border-bottom: 1px solid #e8f0f7;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .settings-group-head h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--rail-blue);
+    }
+    .settings-group-head p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+    .settings-group-body { padding: 22px; }
+
+    /* ── Wear limit tables ── */
+    .wear-tables {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .wear-table-wrap { }
+    .wear-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #d0dde8;
+    }
+    .wear-table th {
+      background: #b8d4e8;
+      color: #1a2b3c;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      padding: 11px 14px;
+      text-align: center;
+    }
+    .wear-table td {
+      padding: 10px 14px;
+      font-size: 13.5px;
+      font-weight: 600;
+      border-bottom: 1px solid #e8eef5;
+    }
+    .wear-table tr:last-child td { border-bottom: none; }
+    .wear-table .lbl-root   { background: #e8956e22; color: #7a3a18; }
+    .wear-table .lbl-flange { background: #f5e09a44; color: #6b520a; }
+
+    .limit-input-cell { text-align: right; }
+    .limit-input-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 0;
+      border: 1.5px solid #c03030;
+      border-radius: 7px;
+      overflow: hidden;
+      background: #fff5f5;
+    }
+    .limit-input {
+      width: 80px;
+      padding: 7px 10px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #c03030;
+      background: transparent;
+      border: none;
+      outline: none;
+      text-align: center;
+      -moz-appearance: textfield;
+    }
+    .limit-input::-webkit-inner-spin-button,
+    .limit-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .limit-input:focus { background: #fff0f0; }
+
+    .unit-tag {
+      padding: 0 8px;
+      font-size: 11px;
+      color: #c03030;
+      font-weight: 600;
+      background: #fddede;
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      border-left: 1px solid #f0b8b8;
+    }
+
+    /* ── Action bar ── */
+    .action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #e8f0f7;
+      margin-top: 22px;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 9px 20px; border-radius: var(--radius);
+      font-size: 13.5px; font-weight: 600; cursor: pointer;
+      border: none; transition: opacity .15s, transform .1s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-ghost   { background: #f0f5fa; color: var(--text-muted); }
+    .btn-ghost:hover { background: #e2ebf4; }
+    .btn-primary { background: var(--rail-mid); color: var(--white); }
+    .btn-primary:hover { opacity: .9; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 28px; right: 28px;
+      background: #1a2b3c; color: #fff;
+      padding: 11px 18px; border-radius: 8px;
+      font-size: 13.5px; display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.18);
+      transform: translateY(20px); opacity: 0; pointer-events: none;
+      transition: transform .25s, opacity .25s;
+      z-index: 9999;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+    .toast.success { background: var(--success); }
+
+    /* ── Info note ── */
+    .info-note {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 12.5px;
+      color: #1d4ed8;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 9px;
+      align-items: flex-start;
+    }
+    .info-note svg { flex-shrink: 0; margin-top: 1px; }
+
+    @media (max-width: 768px) {
+      :root { --sidebar-w: 0px; }
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .wear-tables { grid-template-columns: 1fr; }
+      .page { padding: 16px 14px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg width="34" height="34" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r="24" stroke="#f5a623" stroke-width="3.5"/>
+        <circle cx="26" cy="26" r="7" fill="#f5a623"/>
+        <circle cx="26" cy="26" r="3.5" fill="#0a2a4a"/>
+        <line x1="26" y1="2" x2="26" y2="50" stroke="#f5a623" stroke-width="2.5"/>
+        <line x1="2" y1="26" x2="50" y2="26" stroke="#f5a623" stroke-width="2.5"/>
+        <line x1="9.5" y1="9.5" x2="42.5" y2="42.5" stroke="#f5a623" stroke-width="2.5"/>
+        <line x1="42.5" y1="9.5" x2="9.5" y2="42.5" stroke="#f5a623" stroke-width="2.5"/>
+        <circle cx="26" cy="26" r="14" stroke="#f5a623" stroke-width="1.5" stroke-dasharray="4 4"/>
+      </svg>
+      <div>
+        <div class="b-name">RailTrack QR</div>
+        <div class="b-sub">Asset Mgmt</div>
+      </div>
+    </div>
+    <nav>
+      <a class="nav-item" href="dashboard.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.293l6 6V13.5a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5v-3h-2v3a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5V9.293l6-6zm-5 6.707V13h3v-3h4v3h3V9.707L8 4.707 3 9.707z"/><path d="M13 2.5V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" href="wheel-list.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3 4.5h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2zm0 3h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2zm0 3h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2z"/></svg>
+        Wheel Assets
+      </a>
+      <a class="nav-item" href="inspection-log.html" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3zm2 3.5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1H5z"/></svg>
+        Inspection Log
+      </a>
+      <a class="nav-item" href="activity-log.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
+        Activity Log
+      </a>
+      <a class="nav-item" href="#" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3zm1 3h8a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1zm0 2h8a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1zm0 2h5a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1z"/></svg>
+        Reports
+      </a>
+      <a class="nav-item active" href="settings.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/></svg>
+        Settings
+      </a>
+      <div class="nav-section">User Management</div>
+      <a class="nav-item" href="users.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/></svg>
+        Users
+      </a>
+      <a class="nav-item" href="groups.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002H7.022zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>
+        Groups
+      </a>
+    </nav>
+    <button class="nav-logout" onclick="logout()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/><path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/></svg>
+      Logout
+    </button>
+    <div class="sidebar-footer">WAG 7 · ELS/ED · v2.4.1</div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Settings</div>
+      </div>
+      <div class="topbar-right">
+        <div>
+          <div class="user-name" id="topUser">User</div>
+          <div class="user-role" id="topRole">Inspector</div>
+        </div>
+        <div class="avatar" id="topAvatar">U</div>
+      </div>
+    </div>
+
+    <div class="page">
+
+      <div class="page-header">
+        <h1>Application Settings</h1>
+        <p>Configure wear limits and operational thresholds for WAG 7 wheel inspection.</p>
+      </div>
+
+      <!-- Wear Limits -->
+      <div class="settings-group">
+        <div class="settings-group-head">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#0f3d6e" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm.5 12.5V14a.5.5 0 0 1-1 0v-1.5a6 6 0 0 1-5-5H1a.5.5 0 0 1 0-1h1.5a6 6 0 0 1 5-5V1a.5.5 0 0 1 1 0v1.5a6 6 0 0 1 5 5H15a.5.5 0 0 1 0 1h-1.5a6 6 0 0 1-5 5zM8 3a5 5 0 1 0 0 10A5 5 0 0 0 8 3zm0 1a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm0 1a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+          <div>
+            <h2>Wheel Wear Limits</h2>
+            <p>Maximum allowable wear values for condemning or scheduling wheel turning</p>
+          </div>
+        </div>
+        <div class="settings-group-body">
+
+          <div class="info-note">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
+            Values are stored in your browser and apply to wear status indicators across all wheel records. All measurements are in millimetres (mm).
+          </div>
+
+          <div class="wear-tables">
+
+            <!-- After WT -->
+            <div class="wear-table-wrap">
+              <table class="wear-table">
+                <thead>
+                  <tr><th colspan="2">WHEEL WEAR LIMIT AFTER WT</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="lbl-root">ROOT WEAR</td>
+                    <td class="limit-input-cell">
+                      <div class="limit-input-wrap">
+                        <input type="number" class="limit-input" id="afterRootWear" value="1.5" min="0" max="99" step="0.1" />
+                        <span class="unit-tag">mm</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="lbl-flange">FLANGE WEAR</td>
+                    <td class="limit-input-cell">
+                      <div class="limit-input-wrap">
+                        <input type="number" class="limit-input" id="afterFlangeWear" value="1.2" min="0" max="99" step="0.1" />
+                        <span class="unit-tag">mm</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Before WT -->
+            <div class="wear-table-wrap">
+              <table class="wear-table">
+                <thead>
+                  <tr><th colspan="2">WHEEL WEAR LIMIT BEFORE WT</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="lbl-root">ROOT WEAR</td>
+                    <td class="limit-input-cell">
+                      <div class="limit-input-wrap">
+                        <input type="number" class="limit-input" id="beforeRootWear" value="4.0" min="0" max="99" step="0.1" />
+                        <span class="unit-tag">mm</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="lbl-flange">FLANGE WEAR</td>
+                    <td class="limit-input-cell">
+                      <div class="limit-input-wrap">
+                        <input type="number" class="limit-input" id="beforeFlangeWear" value="2.0" min="0" max="99" step="0.1" />
+                        <span class="unit-tag">mm</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+          </div><!-- /wear-tables -->
+
+          <div class="action-bar">
+            <button class="btn btn-ghost" onclick="resetDefaults()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg>
+              Reset to Defaults
+            </button>
+            <button class="btn btn-primary" onclick="saveSettings()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3.5 3.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L7.5 9.293V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1H2z"/></svg>
+              Save Settings
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- MSU Play Limits -->
+      <div class="settings-group">
+        <div class="settings-group-head">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#0f3d6e" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.475l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/></svg>
+          <div>
+            <h2>MSU Play Limits — Motor Suspension Unit</h2>
+            <p>Maximum allowable axle box lateral play per locomotive class</p>
+          </div>
+        </div>
+        <div class="settings-group-body">
+
+          <div class="msu-table-wrap">
+            <table class="wear-table" style="max-width:480px">
+              <thead>
+                <tr><th colspan="2">MSU PLAY MAXIMUM LIMIT</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="lbl-root" style="font-size:14px;letter-spacing:.5px">WAG 7</td>
+                  <td class="limit-input-cell">
+                    <div class="limit-input-wrap">
+                      <input type="number" class="limit-input" id="msuWAG7" value="1.5" min="0" max="99" step="0.1" />
+                      <span class="unit-tag">mm</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="lbl-flange" style="font-size:14px;letter-spacing:.5px">WAP 7</td>
+                  <td class="limit-input-cell">
+                    <div class="limit-input-wrap">
+                      <input type="number" class="limit-input" id="msuWAP7" value="1.0" min="0" max="99" step="0.1" />
+                      <span class="unit-tag">mm</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="lbl-root" style="font-size:14px;letter-spacing:.5px">WAG 9</td>
+                  <td class="limit-input-cell">
+                    <div class="limit-input-wrap">
+                      <input type="number" class="limit-input" id="msuWAG9" value="1.0" min="0" max="99" step="0.1" />
+                      <span class="unit-tag">mm</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="action-bar">
+            <button class="btn btn-ghost" onclick="resetMsuDefaults()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg>
+              Reset to Defaults
+            </button>
+            <button class="btn btn-primary" onclick="saveMsuSettings()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3.5 3.5a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L7.5 9.293V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1H2z"/></svg>
+              Save Settings
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/></svg>
+    <span id="toastMsg"></span>
+  </div>
+
+  <script>
+    const WEAR_DEFAULTS = { afterRootWear: 1.5, afterFlangeWear: 1.2, beforeRootWear: 4.0, beforeFlangeWear: 2.0 };
+    const WEAR_KEYS = Object.keys(WEAR_DEFAULTS);
+
+    const MSU_DEFAULTS = { msuWAG7: 1.5, msuWAP7: 1.0, msuWAG9: 1.0 };
+    const MSU_KEYS = Object.keys(MSU_DEFAULTS);
+
+    (function init() {
+      const u = sessionStorage.getItem('rt_user');
+      if (!u) { window.location.href = 'index.html'; return; }
+      const user = JSON.parse(u);
+      document.getElementById('topUser').textContent   = user.name  || 'User';
+      document.getElementById('topRole').textContent   = user.role  || 'Inspector';
+      document.getElementById('topAvatar').textContent = (user.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase();
+
+      const savedWear = JSON.parse(localStorage.getItem('rt_wear_limits') || '{}');
+      WEAR_KEYS.forEach(k => {
+        const el = document.getElementById(k);
+        if (el) el.value = savedWear[k] !== undefined ? savedWear[k] : WEAR_DEFAULTS[k];
+      });
+
+      const savedMsu = JSON.parse(localStorage.getItem('rt_msu_limits') || '{}');
+      MSU_KEYS.forEach(k => {
+        const el = document.getElementById(k);
+        if (el) el.value = savedMsu[k] !== undefined ? savedMsu[k] : MSU_DEFAULTS[k];
+      });
+    })();
+
+    function saveSettings() {
+      const vals = {};
+      let valid = true;
+      WEAR_KEYS.forEach(k => {
+        const v = parseFloat(document.getElementById(k).value);
+        if (isNaN(v) || v < 0) { valid = false; return; }
+        vals[k] = v;
+      });
+      if (!valid) { showToast('Please enter valid positive numbers.', false); return; }
+      localStorage.setItem('rt_wear_limits', JSON.stringify(vals));
+      showToast('Wear limit settings saved.', true);
+    }
+
+    function resetDefaults() {
+      WEAR_KEYS.forEach(k => { document.getElementById(k).value = WEAR_DEFAULTS[k]; });
+      localStorage.removeItem('rt_wear_limits');
+      showToast('Wear limits reset to defaults.', true);
+    }
+
+    function saveMsuSettings() {
+      const vals = {};
+      let valid = true;
+      MSU_KEYS.forEach(k => {
+        const v = parseFloat(document.getElementById(k).value);
+        if (isNaN(v) || v < 0) { valid = false; return; }
+        vals[k] = v;
+      });
+      if (!valid) { showToast('Please enter valid positive numbers.', false); return; }
+      localStorage.setItem('rt_msu_limits', JSON.stringify(vals));
+      showToast('MSU play settings saved.', true);
+    }
+
+    function resetMsuDefaults() {
+      MSU_KEYS.forEach(k => { document.getElementById(k).value = MSU_DEFAULTS[k]; });
+      localStorage.removeItem('rt_msu_limits');
+      showToast('MSU limits reset to defaults.', true);
+    }
+
+    function logout() {
+      sessionStorage.removeItem('rt_user');
+      window.location.href = 'index.html';
+    }
+
+    function showToast(msg, success) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      t.className = 'toast' + (success ? ' success' : '');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>

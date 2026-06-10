@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wheel List — RailTrack QR</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rail-blue:  #0a2a4a;
+      --rail-mid:   #0f3d6e;
+      --accent:     #f5a623;
+      --steel:      #c8d8e8;
+      --light-bg:   #edf2f7;
+      --white:      #ffffff;
+      --text-main:  #1a2b3c;
+      --text-muted: #607080;
+      --danger:     #e53e3e;
+      --radius:     9px;
+      --sidebar-w:  230px;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--light-bg);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: var(--text-main);
+      display: flex;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--rail-blue);
+      min-height: 100vh;
+      display: flex; flex-direction: column; flex-shrink: 0;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+    }
+    .sidebar-brand {
+      padding: 22px 20px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .sidebar-brand .b-name { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.15; }
+    .sidebar-brand .b-sub  { font-size: 10px; color: var(--steel); letter-spacing: 1.5px; text-transform: uppercase; }
+    .sidebar nav { flex: 1; padding: 14px 0; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 20px; font-size: 13.5px; color: rgba(200,216,232,.75);
+      cursor: pointer; transition: background .15s, color .15s;
+      border-left: 3px solid transparent; text-decoration: none;
+    }
+    .nav-item:hover  { background: rgba(255,255,255,.07); color: #fff; }
+    .nav-item.active { background: rgba(245,166,35,.12); color: var(--accent); border-left-color: var(--accent); }
+    .nav-section { padding:14px 20px 5px; font-size:10px; font-weight:700; color:rgba(200,216,232,.35); text-transform:uppercase; letter-spacing:1.5px; border-top:1px solid rgba(255,255,255,.06); margin-top:6px; }
+    .sidebar-footer  { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,.08); font-size: 11.5px; color: rgba(200,216,232,.4); }
+    .nav-logout {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 20px; font-size: 13.5px; color: rgba(248,113,113,.8);
+      cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+      border-left: 3px solid transparent; transition: background .15s, color .15s;
+    }
+    .nav-logout:hover { background: rgba(248,113,113,.12); color: #fca5a5; border-left-color: #ef4444; }
+
+    /* ── Main ── */
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+
+    .topbar {
+      background: var(--white);
+      border-bottom: 1px solid #dce6ef;
+      padding: 0 28px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); }
+    .topbar-left span { color: var(--text-main); font-weight: 600; }
+    .topbar-right { display: flex; align-items: center; gap: 14px; }
+    .avatar { width: 34px; height: 34px; background: var(--rail-mid); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; }
+    .user-name { font-size: 13px; font-weight: 600; }
+    .user-role { font-size: 11px; color: var(--text-muted); }
+
+    .page { padding: 24px 28px 48px; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(10,42,74,.07);
+      padding: 16px 20px;
+      margin-bottom: 18px;
+      display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1; min-width: 220px;
+    }
+    .search-wrap svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: #94aab8; pointer-events: none; }
+    .search-wrap input {
+      width: 100%; padding: 9px 36px 9px 36px;
+      border: 1.5px solid #d0dde8; border-radius: var(--radius);
+      font-size: 13.5px; color: var(--text-main); background: #f8fafc;
+      outline: none; font-family: inherit;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .search-wrap input:focus { border-color: var(--rail-mid); box-shadow: 0 0 0 3px rgba(15,61,110,.1); background: #fff; }
+    .search-clear {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: #94aab8;
+      font-size: 16px; line-height: 1; display: none; padding: 2px;
+    }
+    .search-clear:hover { color: var(--danger); }
+
+    .filter-group { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+
+    .filter-item { display: flex; flex-direction: column; gap: 4px; }
+    .filter-item label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .4px; }
+    .filter-item select {
+      padding: 9px 28px 9px 10px;
+      border: 1.5px solid #d0dde8; border-radius: var(--radius);
+      font-size: 13px; color: var(--text-main); background: #f8fafc;
+      appearance: none; cursor: pointer; outline: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394aab8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      transition: border-color .18s;
+    }
+    .filter-item select:focus { border-color: var(--rail-mid); box-shadow: 0 0 0 3px rgba(15,61,110,.1); background-color: #fff; }
+
+    .toolbar-actions { display: flex; gap: 8px; align-items: flex-end; margin-left: auto; }
+    .btn {
+      padding: 9px 16px; border-radius: var(--radius);
+      font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: opacity .18s, transform .1s; white-space: nowrap;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-ghost    { background: transparent; color: var(--text-muted); border: 1.5px solid #d0dde8; }
+    .btn-ghost:hover { background: #e8eef5; }
+    .btn-primary  { background: linear-gradient(135deg, var(--rail-mid), var(--rail-blue)); color: #fff; }
+    .btn-primary:hover { opacity: .9; }
+    .btn-accent   { background: var(--accent); color: #3d2000; }
+    .btn-accent:hover { background: #d4891a; }
+
+    /* ── Summary chips ── */
+    .summary-row {
+      display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+      margin-bottom: 14px;
+    }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+    }
+    .chip-total  { background: #e8f0f9; color: var(--rail-mid); }
+    .chip-hrshop { background: #f0fff4; color: #276749; }
+    .chip-scrap  { background: #fff5f5; color: var(--danger); }
+    .chip-wpark  { background: #faf5ff; color: #6b46c1; }
+    .chip-wshop  { background: #fffbeb; color: #92600a; }
+    .result-count { font-size: 12.5px; color: var(--text-muted); margin-left: auto; }
+
+    /* ── Table card ── */
+    .table-card {
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(10,42,74,.07);
+      overflow: hidden;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table.wheel-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 13px; min-width: 1050px;
+    }
+
+    .wheel-table thead th {
+      background: var(--rail-blue);
+      color: #fff;
+      padding: 11px 14px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: .3px;
+      white-space: nowrap;
+      user-select: none;
+      cursor: pointer;
+      position: relative;
+    }
+    .wheel-table thead th:hover { background: #0d3360; }
+    .wheel-table thead th.sorted-asc  { background: #164e8a; }
+    .wheel-table thead th.sorted-desc { background: #164e8a; }
+    .sort-icon { margin-left: 5px; opacity: .5; font-size: 10px; }
+    .wheel-table thead th.sorted-asc  .sort-icon,
+    .wheel-table thead th.sorted-desc .sort-icon { opacity: 1; }
+
+    .wheel-table tbody tr { border-bottom: 1px solid #edf2f7; transition: background .12s; }
+    .wheel-table tbody tr:hover { background: #f0f7ff; }
+    .wheel-table tbody tr:last-child { border-bottom: none; }
+    .wheel-table td { padding: 10px 14px; vertical-align: middle; white-space: nowrap; }
+
+    /* cell styles */
+    .cell-sl    { color: var(--text-muted); font-size: 12px; }
+    .cell-axle  { font-weight: 700; color: var(--rail-blue); }
+    .cell-loco  { font-family: monospace; font-size: 12.5px; color: var(--text-muted); }
+    .type-badge { display:inline-block; padding:2px 9px; border-radius:20px; font-size:11.5px; font-weight:700; letter-spacing:.4px; }
+    .type-wag7  { background:#eff6ff; color:#1d4ed8; }
+    .type-wap7  { background:#faf5ff; color:#6b21a8; }
+    .type-wag9  { background:#f0fdf4; color:#15803d; }
+    .cell-dia   { font-weight: 700; font-size: 14px; }
+    .dia-crit   { color: var(--danger); }
+    .dia-warn   { color: #d97706; }
+    .dia-good   { color: #276749; }
+    .dia-high   { color: #6b46c1; }
+    .cell-profile { font-family: monospace; font-size: 12px; color: var(--text-muted); }
+    .cell-msu   { font-size: 13px; }
+    .msu-high   { color: var(--danger); font-weight: 700; }
+
+    /* position badge */
+    .pos-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 11.5px; font-weight: 700; white-space: nowrap;
+    }
+    .pos-hrshop { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
+    .pos-scrap  { background: #fff5f5; color: var(--danger); border: 1px solid #feb2b2; }
+    .pos-wpark  { background: #faf5ff; color: #6b46c1; border: 1px solid #d6bcfa; }
+    .pos-wshop  { background: #fffbeb; color: #92600a; border: 1px solid #fbd38d; }
+    .pos-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .pos-hrshop .pos-dot { background: #38a169; }
+    .pos-scrap  .pos-dot { background: var(--danger); }
+    .pos-wpark  .pos-dot { background: #805ad5; }
+    .pos-wshop  .pos-dot { background: #d97706; }
+
+    /* remarks badge */
+    .remark-tag {
+      display: inline-block;
+      background: #fff8e8; color: #92600a;
+      border: 1px solid #fbd38d;
+      padding: 2px 8px; border-radius: 4px;
+      font-size: 11px; font-weight: 600;
+      max-width: 180px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .remark-tag.danger { background: #fff5f5; color: var(--danger); border-color: #feb2b2; }
+
+    /* action buttons */
+    .action-btns { display: flex; gap: 6px; }
+    .icon-btn {
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      border: none; cursor: pointer; transition: background .15s;
+    }
+    .icon-btn.edit   { background: #f0fff4; color: #276749; }
+    .icon-btn.del    { background: #fff5f5; color: var(--danger); }
+    .icon-btn:hover.edit { background: #c6f6d5; }
+    .icon-btn:hover.del  { background: #fed7d7; }
+
+    /* empty state */
+    .empty-state {
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--text-muted);
+      display: none;
+    }
+    .empty-state svg { margin-bottom: 12px; opacity: .35; }
+    .empty-state p   { font-size: 14px; }
+
+    /* ── Pagination ── */
+    .pagination-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      border-top: 1px solid #edf2f7;
+      flex-wrap: wrap; gap: 10px;
+    }
+    .pagination-info { font-size: 12.5px; color: var(--text-muted); }
+    .pagination-btns { display: flex; gap: 4px; }
+    .page-btn {
+      min-width: 32px; height: 32px; padding: 0 8px;
+      border-radius: 7px; border: 1.5px solid #d0dde8;
+      background: var(--white); color: var(--text-main);
+      font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background .15s, border-color .15s;
+    }
+    .page-btn:hover    { background: #e8f0f9; border-color: var(--rail-mid); }
+    .page-btn.active   { background: var(--rail-mid); color: #fff; border-color: var(--rail-mid); font-weight: 700; }
+    .page-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .per-page-wrap { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-muted); }
+    .per-page-wrap select {
+      padding: 5px 22px 5px 8px; border: 1.5px solid #d0dde8;
+      border-radius: 7px; font-size: 12.5px; background: #f8fafc;
+      appearance: none; cursor: pointer; outline: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2394aab8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 6px center;
+    }
+
+    /* ── Active filter tags ── */
+    .active-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+    .filter-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #e8f0f9; color: var(--rail-mid);
+      padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .filter-tag button {
+      background: none; border: none; cursor: pointer; color: var(--rail-mid);
+      font-size: 14px; line-height: 1; padding: 0; display: flex; align-items: center;
+    }
+    .filter-tag button:hover { color: var(--danger); }
+
+    @media (max-width: 760px) {
+      :root { --sidebar-w: 0px; }
+      .sidebar { display: none; }
+      .main    { margin-left: 0; }
+      .page    { padding: 16px 14px 40px; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar-actions { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg width="34" height="34" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r="24" stroke="#f5a623" stroke-width="3.5"/>
+        <circle cx="26" cy="26" r="7" fill="#f5a623"/>
+        <circle cx="26" cy="26" r="3.5" fill="#0a2a4a"/>
+        <line x1="26" y1="2" x2="26" y2="50" stroke="#f5a623" stroke-width="2.5"/>
+        <line x1="2" y1="26" x2="50" y2="26" stroke="#f5a623" stroke-width="2.5"/>
+        <line x1="9.5" y1="9.5" x2="42.5" y2="42.5" stroke="#f5a623" stroke-width="2.5"/>
+        <line x1="42.5" y1="9.5" x2="9.5" y2="42.5" stroke="#f5a623" stroke-width="2.5"/>
+        <circle cx="26" cy="26" r="14" stroke="#f5a623" stroke-width="1.5" stroke-dasharray="4 4"/>
+      </svg>
+      <div>
+        <div class="b-name">RailTrack QR</div>
+        <div class="b-sub">Asset Mgmt</div>
+      </div>
+    </div>
+    <nav>
+      <a class="nav-item" href="dashboard.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.293l6 6V13.5a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5v-3h-2v3a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5V9.293l6-6zm-5 6.707V13h3v-3h4v3h3V9.707L8 4.707 3 9.707z"/><path d="M13 2.5V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item active" href="wheel-list.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3 4.5h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2zm0 3h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2zm0 3h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2z"/></svg>
+        Wheel Assets
+      </a>
+      <a class="nav-item" href="inspection-log.html" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3zm2 3.5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1H5z"/></svg>
+        Inspection Log
+      </a>
+      <a class="nav-item" href="activity-log.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
+        Activity Log
+      </a>
+      <a class="nav-item" href="#" style="display:none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3zm1 3h8a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1zm0 2h8a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1zm0 2h5a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1z"/></svg>
+        Reports
+      </a>
+      <a class="nav-item" href="settings.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34z"/></svg>
+        Settings
+      </a>
+      <div class="nav-section">User Management</div>
+      <a class="nav-item" href="users.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/></svg>
+        Users
+      </a>
+      <a class="nav-item" href="groups.html">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002H7.022zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>
+        Groups
+      </a>
+    </nav>
+    <button class="nav-logout" onclick="logout()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/><path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/></svg>
+      Logout
+    </button>
+    <div class="sidebar-footer">WAG 7 · ELS/ED · v2.4.1</div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+
+    <div class="topbar">
+      <div class="topbar-left">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M3 4.5h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2zm0 3h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2zm0 3h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2z"/></svg>
+        Wheel Assets &rsaquo; <span>All Wheels</span>
+      </div>
+      <div class="topbar-right">
+        <div style="text-align:right">
+          <div class="user-name" id="topUser">—</div>
+          <div class="user-role" id="topRole">—</div>
+        </div>
+        <div class="avatar" id="topAvatar">—</div>
+      </div>
+    </div>
+
+    <div class="page">
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <!-- Search -->
+        <div class="search-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.156a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/></svg>
+          <input type="text" id="searchInput" placeholder="Search axle no., loco no., remarks…" oninput="onSearch()" />
+          <button class="search-clear" id="searchClear" onclick="clearSearch()">×</button>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-group">
+          <div class="filter-item">
+            <label>Position</label>
+            <select id="filterPosition" onchange="applyFilters()">
+              <option value="">All Positions</option>
+              <option value="HR SHOP">HR Shop</option>
+              <option value="SCRAP">Scrap</option>
+              <option value="wheel park">Wheel Park</option>
+              <option value="wheel shop">Wheel Shop</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>Dia Range</label>
+            <select id="filterDia" onchange="applyFilters()">
+              <option value="">All Diameters</option>
+              <option value="lt1030">&lt; 1030 mm</option>
+              <option value="1031-1040">1031 – 1040</option>
+              <option value="1041-1050">1041 – 1050</option>
+              <option value="1051-1060">1051 – 1060</option>
+              <option value="1061-1070">1061 – 1070</option>
+              <option value="gt1070">&gt; 1070 mm</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>Loco No.</label>
+            <select id="filterLoco" onchange="applyFilters()">
+              <option value="">All Locos</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>Type</label>
+            <select id="filterType" onchange="applyFilters()">
+              <option value="">All Types</option>
+              <option value="WAG7">WAG7</option>
+              <option value="WAP7">WAP7</option>
+              <option value="WAG9">WAG9</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="toolbar-actions">
+          <button class="btn btn-ghost" onclick="resetFilters()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></svg>
+            Reset
+          </button>
+          <button class="btn btn-ghost" onclick="exportCSV()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+            Export CSV
+          </button>
+          <button class="btn btn-ghost" onclick="triggerImport()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg>
+            Import Excel
+          </button>
+          <input type="file" id="importFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(event)" />
+          <a href="wheel-entry.html" class="btn btn-primary" style="text-decoration:none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16"><path d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2z"/></svg>
+            Add Wheel
+          </a>
+        </div>
+      </div>
+
+      <!-- Active filter tags -->
+      <div class="active-filters" id="activeTags"></div>
+
+      <!-- Summary chips -->
+      <div class="summary-row">
+        <div class="chip chip-total" id="chipTotal">— Total</div>
+        <div class="chip chip-hrshop" id="chipHR">— HR Shop</div>
+        <div class="chip chip-scrap"  id="chipScrap">— Scrap</div>
+        <div class="chip chip-wpark"  id="chipWPark">— Wheel Park</div>
+        <div class="chip chip-wshop"  id="chipWShop">— Wheel Shop</div>
+        <div class="result-count" id="resultCount"></div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <div class="table-wrap">
+          <table class="wheel-table" id="wheelTable">
+            <thead>
+              <tr>
+                <th onclick="sortBy('sl')"         data-col="sl">Sl.<span class="sort-icon" id="si-sl">↕</span></th>
+                <th onclick="sortBy('axle')"        data-col="axle">Axle No.<span class="sort-icon" id="si-axle">↕</span></th>
+                <th onclick="sortBy('loco')"        data-col="loco">Loco No.<span class="sort-icon" id="si-loco">↕</span></th>
+                <th onclick="sortBy('type')"        data-col="type">Type<span class="sort-icon" id="si-type">↕</span></th>
+                <th onclick="sortBy('dia')"         data-col="dia">Wheel Dia<span class="sort-icon" id="si-dia">↕</span></th>
+                <th>Profile PE</th>
+                <th>Profile CE</th>
+                <th onclick="sortBy('approxDia')"   data-col="approxDia">Approx Dia<span class="sort-icon" id="si-approxDia">↕</span></th>
+                <th>Appx Profile</th>
+                <th onclick="sortBy('released')"    data-col="released">Released Date<span class="sort-icon" id="si-released">↕</span></th>
+                <th onclick="sortBy('msu')"         data-col="msu">MSU Play<span class="sort-icon" id="si-msu">↕</span></th>
+                <th onclick="sortBy('wdist')"       data-col="wdist">Wheel Dist.<span class="sort-icon" id="si-wdist">↕</span></th>
+                <th onclick="sortBy('position')"    data-col="position">Position<span class="sort-icon" id="si-position">↕</span></th>
+                <th style="cursor:default">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <div class="empty-state" id="emptyState">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="#c8d8e8" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.156a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/></svg>
+            <p>No wheels match the current filters.</p>
+            <button class="btn btn-ghost" style="margin:12px auto 0" onclick="resetFilters()">Clear Filters</button>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-bar" id="paginationBar">
+          <div class="pagination-info" id="pageInfo"></div>
+          <div class="pagination-btns" id="pageBtns"></div>
+          <div class="per-page-wrap">
+            Rows per page
+            <select id="perPageSelect" onchange="changePerPage()">
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+  // ── Data ──
+  const ALL_WHEELS = [
+    { sl:1,  axle:'HH 34-63',  loco:'27497/5', type:'WAG7', dia:1028, pePH:1.37, pePT:0.72, cePH:1.65, cePT:0.47, approxDia:1028, appxPH:1.37, appxPT:0.72, released:'',           msu:1.37, wdist:1596.80, position:'SCRAP',      remarks:'' },
+    { sl:2,  axle:'HH-80-39',  loco:'27906/4', type:'WAG7', dia:1033, pePH:1.96, pePT:0.72, cePH:2.98, cePT:1.29, approxDia:1033, appxPH:1.96, appxPT:0.72, released:'06.04.2026', msu:0.80, wdist:1597.24, position:'HR SHOP',    remarks:'' },
+    { sl:3,  axle:'HH-01973',  loco:'27906/6', type:'WAG7', dia:1033, pePH:2.74, pePT:0.99, cePH:2.74, cePT:1.34, approxDia:1033, appxPH:2.74, appxPT:0.99, released:'06.04.2026', msu:0.14, wdist:1596.72, position:'HR SHOP',    remarks:'' },
+    { sl:4,  axle:'SHR-301',   loco:'27906/2', type:'WAP7', dia:1034, pePH:3.35, pePT:1.32, cePH:1.24, cePT:0.14, approxDia:1034, appxPH:3.35, appxPT:1.32, released:'06.04.2026', msu:1.38, wdist:1597.38, position:'HR SHOP',    remarks:'SHARP FLANGE' },
+    { sl:5,  axle:'HH-01786',  loco:'24602/4', type:'WAG7', dia:1036, pePH:1.45, pePT:0.90, cePH:1.31, cePT:0.84, approxDia:1036, appxPH:1.45, appxPT:0.90, released:'14.03.2023', msu:0.38, wdist:1597.41, position:'SCRAP',      remarks:'' },
+    { sl:6,  axle:'AC-1614',   loco:'27654/2', type:'WAG9', dia:1036, pePH:0.55, pePT:0.25, cePH:0.80, cePT:0.16, approxDia:1036, appxPH:0.55, appxPT:0.25, released:'14.02.2025', msu:0.58, wdist:1597.18, position:'wheel park',  remarks:'' },
+    { sl:7,  axle:'HH-01972',  loco:'27906/1', type:'WAG7', dia:1036, pePH:2.37, pePT:0.82, cePH:2.40, cePT:1.38, approxDia:1036, appxPH:2.37, appxPT:0.82, released:'06.04.2026', msu:0.79, wdist:1596.44, position:'HR SHOP',    remarks:'MEASUREMENT TO BE DONE' },
+    { sl:8,  axle:'ELW 2476',  loco:'27906/3', type:'WAG7', dia:1036, pePH:2.67, pePT:0.71, cePH:1.56, cePT:0.69, approxDia:1036, appxPH:2.67, appxPT:0.71, released:'06.04.2026', msu:0.59, wdist:1596.63, position:'HR SHOP',    remarks:'' },
+    { sl:9,  axle:'HH-57-36',  loco:'27467/1', type:'WAG7', dia:1037, pePH:1.74, pePT:0.40, cePH:1.55, cePT:0.80, approxDia:1037, appxPH:1.74, appxPT:0.40, released:'12.03.2026', msu:1.37, wdist:1597.32, position:'SCRAP',      remarks:'' },
+    { sl:10, axle:'HH-41-36',  loco:'27490/4', type:'WAG9', dia:1038, pePH:3.98, pePT:1.90, cePH:1.66, cePT:0.55, approxDia:1038, appxPH:3.98, appxPT:1.90, released:'16.03.2026', msu:1.43, wdist:1597.58, position:'SCRAP',      remarks:'' },
+    { sl:11, axle:'HH-14-39',  loco:'24656/1', type:'WAG7', dia:1053, pePH:1.32, pePT:0.66, cePH:1.14, cePT:0.19, approxDia:1053, appxPH:1.32, appxPT:0.66, released:'17.03.2026', msu:0.63, wdist:1599.42, position:'SCRAP',      remarks:'BULL GEAR TEETH SUSPECTED DAMAGE' },
+    { sl:12, axle:'HH-90-30',  loco:'27472/4', type:'WAG7', dia:1053, pePH:1.18, pePT:0.06, cePH:1.37, cePT:0.00, approxDia:1053, appxPH:1.18, appxPT:0.06, released:'02.05.2026', msu:null, wdist:null,    position:'HR SHOP',    remarks:'' },
+    { sl:13, axle:'HH-61-83',  loco:'27472/5', type:'WAP7', dia:1053, pePH:1.81, pePT:0.63, cePH:2.03, cePT:0.72, approxDia:1053, appxPH:1.81, appxPT:0.63, released:'02.05.2026', msu:null, wdist:null,    position:'HR SHOP',    remarks:'' },
+    { sl:14, axle:'HH-01418',  loco:'27472/6', type:'WAG7', dia:1053, pePH:2.80, pePT:0.93, cePH:1.88, cePT:0.57, approxDia:1053, appxPH:2.80, appxPT:0.93, released:'02.05.2026', msu:null, wdist:null,    position:'HR SHOP',    remarks:'' },
+    { sl:15, axle:'HH-01-21',  loco:'27472/1', type:'WAG9', dia:1059, pePH:1.82, pePT:0.53, cePH:2.30, cePT:0.60, approxDia:1059, appxPH:1.82, appxPT:0.53, released:'30.04.2026', msu:1.13, wdist:1597.30, position:'HR SHOP',    remarks:'' },
+    { sl:16, axle:'HH-53-06',  loco:'27472/2', type:'WAG7', dia:1059, pePH:2.00, pePT:0.55, cePH:1.29, cePT:0.51, approxDia:1059, appxPH:2.00, appxPT:0.55, released:'30.04.2026', msu:0.28, wdist:1596.55, position:'HR SHOP',    remarks:'' },
+    { sl:17, axle:'HH-60-48',  loco:'27472/3', type:'WAG7', dia:1059, pePH:2.57, pePT:0.86, cePH:1.50, cePT:0.35, approxDia:1059, appxPH:2.57, appxPT:0.86, released:'30.04.2026', msu:1.64, wdist:1597.10, position:'HR SHOP',    remarks:'' },
+    { sl:18, axle:'HH-37-75',  loco:'27632/1', type:'WAP7', dia:1064, pePH:1.31, pePT:0.55, cePH:1.29, cePT:0.66, approxDia:1064, appxPH:1.31, appxPT:0.55, released:'06.03.2026', msu:0.74, wdist:1597.38, position:'wheel park',  remarks:'' },
+    { sl:19, axle:'SHH-129',   loco:'27632/4', type:'WAG9', dia:1068, pePH:1.42, pePT:0.70, cePH:2.80, cePT:1.60, approxDia:1068, appxPH:1.42, appxPT:0.70, released:'24.03.2026', msu:0.16, wdist:1597.30, position:'SCRAP',      remarks:'' },
+    { sl:20, axle:'HH-48-35',  loco:'GOC/TPJ', type:'WAG9', dia:1093, pePH:0.00, pePT:0.00, cePH:0.00, cePT:0.00, approxDia:1093, appxPH:0.00, appxPT:0.00, released:'20.03.2026', msu:0.10, wdist:1595.70, position:'HR SHOP',    remarks:'' },
+    { sl:21, axle:'HH 52-91',  loco:'27471/4', type:'WAG7', dia:1011, pePH:null, pePT:null, cePH:null, cePT:null,  approxDia:1011, appxPH:null, appxPT:null, released:'',           msu:null, wdist:null,    position:'wheel shop',  remarks:'' },
+  ];
+
+  // ── State ──
+  let filtered   = [...ALL_WHEELS];
+  let sortCol    = 'sl';
+  let sortDir    = 'asc';
+  let currentPage = 1;
+  let perPage     = 10;
+
+  // ── Init ──
+  const locos = [...new Set(ALL_WHEELS.map(w => w.loco))].sort();
+  const sel   = document.getElementById('filterLoco');
+  locos.forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = l; sel.appendChild(o); });
+
+  render();
+
+  // ── Search ──
+  function onSearch() {
+    const v = document.getElementById('searchInput').value;
+    document.getElementById('searchClear').style.display = v ? 'flex' : 'none';
+    applyFilters();
+  }
+  function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchClear').style.display = 'none';
+    applyFilters();
+  }
+
+  // ── Filters ──
+  function applyFilters() {
+    const q    = document.getElementById('searchInput').value.trim().toLowerCase();
+    const pos  = document.getElementById('filterPosition').value;
+    const dia  = document.getElementById('filterDia').value;
+    const loco = document.getElementById('filterLoco').value;
+    const type = document.getElementById('filterType').value;
+
+    filtered = ALL_WHEELS.filter(w => {
+      if (q && !`${w.axle} ${w.loco} ${w.position}`.toLowerCase().includes(q)) return false;
+      if (pos  && w.position !== pos) return false;
+      if (loco && w.loco !== loco)    return false;
+      if (type && w.type !== type)    return false;
+      if (dia) {
+        if (dia === 'lt1030'    && w.dia >= 1030)            return false;
+        if (dia === '1031-1040' && (w.dia < 1031 || w.dia > 1040)) return false;
+        if (dia === '1041-1050' && (w.dia < 1041 || w.dia > 1050)) return false;
+        if (dia === '1051-1060' && (w.dia < 1051 || w.dia > 1060)) return false;
+        if (dia === '1061-1070' && (w.dia < 1061 || w.dia > 1070)) return false;
+        if (dia === 'gt1070'    && w.dia <= 1070)            return false;
+      }
+      return true;
+    });
+
+    doSort();
+    currentPage = 1;
+    renderActiveTags();
+    render();
+  }
+
+  function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchClear').style.display = 'none';
+    document.getElementById('filterPosition').value = '';
+    document.getElementById('filterDia').value = '';
+    document.getElementById('filterLoco').value = '';
+    document.getElementById('filterType').value = '';
+    filtered = [...ALL_WHEELS];
+    doSort();
+    currentPage = 1;
+    renderActiveTags();
+    render();
+  }
+
+  // ── Active filter tags ──
+  function renderActiveTags() {
+    const pos  = document.getElementById('filterPosition').value;
+    const dia  = document.getElementById('filterDia').value;
+    const loco = document.getElementById('filterLoco').value;
+    const type = document.getElementById('filterType').value;
+    const q    = document.getElementById('searchInput').value.trim();
+    const cont = document.getElementById('activeTags');
+    cont.innerHTML = '';
+    const add = (label, clear) => {
+      const d = document.createElement('div');
+      d.className = 'filter-tag';
+      d.innerHTML = `${label} <button onclick="${clear}">×</button>`;
+      cont.appendChild(d);
+    };
+    if (q)    add(`Search: "${q}"`, `clearSearch()`);
+    if (pos)  add(`Position: ${pos}`, `document.getElementById('filterPosition').value='';applyFilters()`);
+    if (dia)  add(`Dia: ${dia}`, `document.getElementById('filterDia').value='';applyFilters()`);
+    if (loco) add(`Loco: ${loco}`, `document.getElementById('filterLoco').value='';applyFilters()`);
+    if (type) add(`Type: ${type}`, `document.getElementById('filterType').value='';applyFilters()`);
+  }
+
+  // ── Sort ──
+  function sortBy(col) {
+    if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    else { sortCol = col; sortDir = 'asc'; }
+    doSort();
+    render();
+  }
+
+  function doSort() {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    filtered.sort((a, b) => {
+      let av, bv;
+      switch (sortCol) {
+        case 'sl':       av = a.sl;       bv = b.sl;       break;
+        case 'axle':     av = a.axle;     bv = b.axle;     break;
+        case 'loco':     av = a.loco;     bv = b.loco;     break;
+        case 'dia':      av = a.dia;      bv = b.dia;      break;
+        case 'approxDia':av = a.approxDia;bv = b.approxDia;break;
+        case 'msu':      av = a.msu ?? -1;bv = b.msu ?? -1;break;
+        case 'wdist':    av = a.wdist ?? 0;bv = b.wdist ?? 0;break;
+        case 'position': av = a.position; bv = b.position;  break;
+        case 'released': av = parseDate(a.released); bv = parseDate(b.released); break;
+        default: return 0;
+      }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return  1 * dir;
+      return 0;
+    });
+  }
+
+  function parseDate(s) {
+    if (!s) return 0;
+    const p = s.split('.');
+    if (p.length !== 3) return 0;
+    return parseInt(p[2]) * 10000 + parseInt(p[1]) * 100 + parseInt(p[0]);
+  }
+
+  // ── Render ──
+  function render() {
+    updateSortIcons();
+    updateChips();
+
+    const start = (currentPage - 1) * perPage;
+    const page  = filtered.slice(start, start + perPage);
+
+    const body  = document.getElementById('tableBody');
+    const empty = document.getElementById('emptyState');
+
+    if (filtered.length === 0) {
+      body.innerHTML = '';
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      body.innerHTML = page.map(w => rowHTML(w)).join('');
+    }
+
+    renderPagination();
+    document.getElementById('resultCount').textContent =
+      filtered.length < ALL_WHEELS.length
+        ? `Showing ${filtered.length} of ${ALL_WHEELS.length} wheels`
+        : `${ALL_WHEELS.length} wheels total`;
+  }
+
+  function rowHTML(w) {
+    const diaClass  = w.dia < 1030 ? 'dia-crit' : w.dia <= 1040 ? 'dia-warn' : w.dia >= 1071 ? 'dia-high' : 'dia-good';
+    const posCls    = { 'HR SHOP':'pos-hrshop', 'SCRAP':'pos-scrap', 'wheel park':'pos-wpark', 'wheel shop':'pos-wshop' }[w.position] || 'pos-hrshop';
+    const _msuLimits  = JSON.parse(localStorage.getItem('rt_msu_limits') || '{}');
+    const _msuDefault = { WAG7: 1.5, WAP7: 1.0, WAG9: 1.0 };
+    const _msuLimit   = _msuLimits['msu' + w.type] !== undefined ? _msuLimits['msu' + w.type] : (_msuDefault[w.type] ?? 1.5);
+    const msuClass    = w.msu !== null && w.msu > _msuLimit ? 'msu-high' : '';
+    const peFmt     = w.pePH !== null ? `${w.pePH}/${w.pePT}` : '—';
+    const ceFmt     = w.cePH !== null ? `${w.cePH}/${w.cePT}` : '—';
+    const appxFmt   = w.appxPH !== null ? `${w.appxPH}/${w.appxPT}` : '—';
+    const remClass  = w.remarks.includes('DAMAGE') || w.remarks.includes('CRACK') ? 'danger' : '';
+    const typeCls   = { 'WAG7':'type-wag7', 'WAP7':'type-wap7', 'WAG9':'type-wag9' }[w.type] || 'type-wag7';
+    return `
+    <tr>
+      <td class="cell-sl">${w.sl}</td>
+      <td class="cell-axle">${w.axle}</td>
+      <td class="cell-loco">${w.loco}</td>
+      <td><span class="type-badge ${typeCls}">${w.type || '—'}</span></td>
+      <td class="cell-dia ${diaClass}">${w.dia}</td>
+      <td class="cell-profile">${peFmt}</td>
+      <td class="cell-profile">${ceFmt}</td>
+      <td class="cell-dia ${diaClass}" style="font-size:13px;font-weight:600">${w.approxDia}</td>
+      <td class="cell-profile">${appxFmt}</td>
+      <td style="font-size:12.5px;color:var(--text-muted)">${w.released || '—'}</td>
+      <td class="cell-msu ${msuClass}">${w.msu !== null ? w.msu : '—'}</td>
+      <td style="font-size:12.5px">${w.wdist !== null ? w.wdist : '—'}</td>
+      <td><span class="pos-badge ${posCls}"><span class="pos-dot"></span>${w.position}</span></td>
+      <td>
+        <div class="action-btns">
+          <button class="icon-btn edit" title="Edit" onclick="editWheel(${w.sl})">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16"><path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/></svg>
+          </button>
+          <button class="icon-btn del" title="Delete" onclick="deleteWheel(${w.sl})">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }
+
+  // ── Chips ──
+  function updateChips() {
+    const src = filtered;
+    document.getElementById('chipTotal').textContent  = `${src.length} Total`;
+    document.getElementById('chipHR').textContent     = `${src.filter(w=>w.position==='HR SHOP').length} HR Shop`;
+    document.getElementById('chipScrap').textContent  = `${src.filter(w=>w.position==='SCRAP').length} Scrap`;
+    document.getElementById('chipWPark').textContent  = `${src.filter(w=>w.position==='wheel park').length} Wheel Park`;
+    document.getElementById('chipWShop').textContent  = `${src.filter(w=>w.position==='wheel shop').length} Wheel Shop`;
+  }
+
+  // ── Sort icons ──
+  function updateSortIcons() {
+    document.querySelectorAll('th[data-col]').forEach(th => {
+      const col = th.dataset.col;
+      const ico = document.getElementById(`si-${col}`);
+      if (!ico) return;
+      th.classList.remove('sorted-asc','sorted-desc');
+      ico.textContent = '↕';
+      if (col === sortCol) {
+        th.classList.add(sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        ico.textContent = sortDir === 'asc' ? '↑' : '↓';
+      }
+    });
+  }
+
+  // ── Pagination ──
+  function renderPagination() {
+    const total = filtered.length;
+    const pages = Math.max(1, Math.ceil(total / perPage));
+    const start = Math.min((currentPage - 1) * perPage + 1, total);
+    const end   = Math.min(currentPage * perPage, total);
+
+    document.getElementById('pageInfo').textContent =
+      total === 0 ? 'No results' : `${start}–${end} of ${total} records`;
+
+    const cont = document.getElementById('pageBtns');
+    cont.innerHTML = '';
+
+    const addBtn = (label, page, disabled, isActive) => {
+      const b = document.createElement('button');
+      b.className = 'page-btn' + (isActive ? ' active' : '');
+      b.innerHTML = label;
+      b.disabled  = disabled;
+      if (!disabled) b.onclick = () => { currentPage = page; render(); };
+      cont.appendChild(b);
+    };
+
+    addBtn('&laquo;', 1, currentPage === 1, false);
+    addBtn('&lsaquo;', currentPage - 1, currentPage === 1, false);
+
+    let lo = Math.max(1, currentPage - 2), hi = Math.min(pages, lo + 4);
+    lo = Math.max(1, hi - 4);
+    for (let p = lo; p <= hi; p++) addBtn(p, p, false, p === currentPage);
+
+    addBtn('&rsaquo;', currentPage + 1, currentPage === pages, false);
+    addBtn('&raquo;', pages, currentPage === pages, false);
+  }
+
+  function changePerPage() {
+    perPage = parseInt(document.getElementById('perPageSelect').value);
+    currentPage = 1;
+    render();
+  }
+
+  // ── Actions ──
+  function editWheel(sl)   { window.location.href = `wheel-entry.html?sl=${sl}`; }
+  function deleteWheel(sl) { if (confirm(`Delete wheel entry Sl. ${sl}?`)) { alert('Deleted (wire to backend).'); } }
+
+  // ── Export CSV ──
+  function exportCSV() {
+    const headers = ['Sl','Axle No','Loco No','Wheel Dia','Profile PE','Profile CE','Approx Dia WT','Appx Profile WT','Released Date','MSU Play','Wheel Distance','Position','Remarks'];
+    const rows = filtered.map(w => [
+      w.sl, w.axle, w.loco, w.dia,
+      w.pePH !== null ? `${w.pePH}/${w.pePT}` : '',
+      w.cePH !== null ? `${w.cePH}/${w.cePT}` : '',
+      w.approxDia,
+      w.appxPH !== null ? `${w.appxPH}/${w.appxPT}` : '',
+      w.released, w.msu ?? '', w.wdist ?? '', w.position, w.remarks
+    ].map(v => `"${v}"`).join(','));
+    const csv  = [headers.join(','), ...rows].join('\n');
+    const link = document.createElement('a');
+    link.href     = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    link.download = 'wheel_assets_' + new Date().toISOString().slice(0,10) + '.csv';
+    link.click();
+  }
+  </script>
+
+  <script>
+    (function() {
+      const u = sessionStorage.getItem('rt_user');
+      if (!u) { window.location.href = 'index.html'; return; }
+      const user = JSON.parse(u);
+      document.getElementById('topUser').textContent   = user.name  || 'User';
+      document.getElementById('topRole').textContent   = user.role  || 'Inspector';
+      document.getElementById('topAvatar').textContent = (user.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase();
+    })();
+    function logout() {
+      sessionStorage.removeItem('rt_user');
+      window.location.href = 'index.html';
+    }
+  </script>
+
+  <!-- ── Import Excel Modal ── -->
+  <div id="importOverlay" style="display:none;position:fixed;inset:0;background:rgba(10,42,74,.45);z-index:999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;width:92%;max-width:900px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+      <!-- Modal header -->
+      <div style="padding:20px 24px 16px;border-bottom:1px solid #e4ecf4;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--rail-blue)">Import Wheel Assets</div>
+          <div id="importSubtitle" style="font-size:12px;color:var(--text-muted);margin-top:2px">Select an Excel file to preview before importing.</div>
+        </div>
+        <button onclick="closeImport()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);line-height:1;padding:4px 8px;">&times;</button>
+      </div>
+      <!-- Template download notice -->
+      <div id="importNotice" style="padding:12px 24px;background:#f0f7ff;border-bottom:1px solid #dceaf7;font-size:12.5px;color:#1e4a7c;flex-shrink:0;">
+        <strong>Expected columns (in order):</strong> Axle No, Loco No, Type, Wheel Dia, PE P/H, PE P/T, CE P/H, CE P/T, Approx Dia, Appx P/H, Appx P/T, Released Date, MSU Play, Wheel Distance, Position, Remarks
+        &nbsp;—&nbsp;<button onclick="downloadTemplate()" style="background:none;border:none;color:var(--rail-mid);font-weight:600;cursor:pointer;font-size:12.5px;text-decoration:underline;">Download Template</button>
+      </div>
+      <!-- Preview table -->
+      <div style="overflow:auto;flex:1;padding:16px 24px;">
+        <div id="importPreviewWrap"></div>
+      </div>
+      <!-- Footer -->
+      <div id="importFooter" style="padding:16px 24px;border-top:1px solid #e4ecf4;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0;">
+        <span id="importCount" style="font-size:13px;color:var(--text-muted)"></span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" onclick="closeImport()">Cancel</button>
+          <button id="importConfirmBtn" class="btn btn-primary" onclick="confirmImport()" disabled>Import All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Import Excel ──
+    let _importRows = [];
+
+    function triggerImport() {
+      const inp = document.getElementById('importFileInput');
+      inp.value = '';
+      inp.click();
+    }
+
+    function handleImportFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        try {
+          const wb = XLSX.read(ev.target.result, { type: 'array', cellDates: true });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+          parseImportRows(raw, file.name);
+        } catch(err) {
+          alert('Could not read file: ' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function parseImportRows(raw, filename) {
+      // Find header row (first row that has 'Axle' in it, or row 0)
+      let dataStart = 0;
+      for (let i = 0; i < Math.min(5, raw.length); i++) {
+        if (raw[i].some(c => String(c).toLowerCase().includes('axle'))) { dataStart = i + 1; break; }
+      }
+
+      const nextSl = ALL_WHEELS.length ? Math.max(...ALL_WHEELS.map(w => w.sl)) + 1 : 1;
+      _importRows = [];
+      for (let i = dataStart; i < raw.length; i++) {
+        const r = raw[i];
+        const axle = String(r[0] ?? '').trim();
+        if (!axle) continue; // skip blank rows
+        _importRows.push({
+          sl:        nextSl + _importRows.length,
+          axle,
+          loco:      String(r[1] ?? '').trim(),
+          type:      String(r[2] ?? 'WAG7').trim().toUpperCase(),
+          dia:       parseFloat(r[3]) || 0,
+          pePH:      r[4] !== '' ? parseFloat(r[4]) : null,
+          pePT:      r[5] !== '' ? parseFloat(r[5]) : null,
+          cePH:      r[6] !== '' ? parseFloat(r[6]) : null,
+          cePT:      r[7] !== '' ? parseFloat(r[7]) : null,
+          approxDia: parseFloat(r[8]) || 0,
+          appxPH:    r[9]  !== '' ? parseFloat(r[9])  : null,
+          appxPT:    r[10] !== '' ? parseFloat(r[10]) : null,
+          released:  r[11] !== '' ? formatReleased(r[11]) : '',
+          msu:       r[12] !== '' ? parseFloat(r[12]) : null,
+          wdist:     r[13] !== '' ? parseFloat(r[13]) : null,
+          position:  String(r[14] ?? 'HR SHOP').trim() || 'HR SHOP',
+          remarks:   String(r[15] ?? '').trim(),
+        });
+      }
+      showImportModal(filename);
+    }
+
+    function formatReleased(val) {
+      if (!val) return '';
+      if (val instanceof Date) {
+        const d = val.getDate().toString().padStart(2,'0');
+        const m = (val.getMonth()+1).toString().padStart(2,'0');
+        return `${d}.${m}.${val.getFullYear()}`;
+      }
+      return String(val).trim();
+    }
+
+    function showImportModal(filename) {
+      document.getElementById('importSubtitle').textContent = filename + ' — ' + _importRows.length + ' row(s) found';
+      const wrap = document.getElementById('importPreviewWrap');
+      if (!_importRows.length) {
+        wrap.innerHTML = '<p style="color:var(--text-muted);padding:24px 0;text-align:center;">No valid rows found. Check the file format.</p>';
+        document.getElementById('importCount').textContent = '';
+        document.getElementById('importConfirmBtn').disabled = true;
+      } else {
+        const cols = ['Sl','Axle No','Loco No','Type','Wheel Dia','PE P/H','PE P/T','CE P/H','CE P/T','Approx Dia','Appx P/H','Appx P/T','Released','MSU Play','W.Dist','Position','Remarks'];
+        const headHTML = cols.map(c => `<th style="padding:8px 10px;white-space:nowrap;font-size:11.5px;background:#f4f8fc;border-bottom:2px solid #dce8f2;text-align:left;color:var(--rail-blue)">${c}</th>`).join('');
+        const rowsHTML = _importRows.map(w => `<tr>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.sl}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7;font-weight:600">${w.axle}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.loco}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.type}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.dia}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.pePH ?? '—'}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.pePT ?? '—'}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.cePH ?? '—'}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.cePT ?? '—'}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.approxDia}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.appxPH ?? '—'}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.appxPT ?? '—'}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.released || '—'}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.msu ?? '—'}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.wdist ?? '—'}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.position}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${w.remarks}">${w.remarks || '—'}</td>
+        </tr>`).join('');
+        wrap.innerHTML = `<table style="width:100%;border-collapse:collapse;"><thead><tr>${headHTML}</tr></thead><tbody>${rowsHTML}</tbody></table>`;
+        document.getElementById('importCount').textContent = _importRows.length + ' row(s) ready to import';
+        document.getElementById('importConfirmBtn').disabled = false;
+      }
+      const ov = document.getElementById('importOverlay');
+      ov.style.display = 'flex';
+    }
+
+    function closeImport() {
+      document.getElementById('importOverlay').style.display = 'none';
+      _importRows = [];
+    }
+
+    function confirmImport() {
+      if (!_importRows.length) return;
+      _importRows.forEach(w => ALL_WHEELS.push(w));
+      closeImport();
+      buildLocoFilter();
+      applyFilters();
+    }
+
+    function downloadTemplate() {
+      const headers = ['Axle No','Loco No','Type','Wheel Dia','PE P/H','PE P/T','CE P/H','CE P/T','Approx Dia','Appx P/H','Appx P/T','Released Date','MSU Play','Wheel Distance','Position','Remarks'];
+      const sample  = ['HH-01234','27906/1','WAG7',1036,2.37,0.82,2.40,1.38,1036,2.37,0.82,'06.04.2026',0.79,1596.44,'HR SHOP',''];
+      const ws = XLSX.utils.aoa_to_sheet([headers, sample]);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Wheels');
+      XLSX.writeFile(wb, 'wheel_import_template.xlsx');
+    }
+  </script>
+</body>
+</html>
