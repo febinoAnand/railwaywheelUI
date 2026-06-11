@@ -217,6 +217,7 @@
     .cell-profile { font-family: monospace; font-size: 12px; color: var(--text-muted); }
     .cell-msu   { font-size: 13px; }
     .msu-high   { color: var(--danger); font-weight: 700; }
+    .wdist-out  { color: var(--danger); font-weight: 700; }
 
     /* position badge */
     .pos-badge {
@@ -721,6 +722,10 @@
     const _msuDefault = { WAG7: 1.5, WAP7: 1.0, WAG9: 1.0 };
     const _msuLimit   = _msuLimits['msu' + w.type] !== undefined ? _msuLimits['msu' + w.type] : (_msuDefault[w.type] ?? 1.5);
     const msuClass    = w.msu !== null && w.msu > _msuLimit ? 'msu-high' : '';
+    const _wdLimits   = JSON.parse(localStorage.getItem('rt_wdist_limits') || '{}');
+    const _wdMin      = _wdLimits.wdistMin !== undefined ? parseFloat(_wdLimits.wdistMin) : 1595.5;
+    const _wdMax      = _wdLimits.wdistMax !== undefined ? parseFloat(_wdLimits.wdistMax) : 1599.0;
+    const wdistClass  = w.wdist !== null && (w.wdist < _wdMin || w.wdist > _wdMax) ? 'wdist-out' : '';
     const peFmt     = w.pePH !== null ? `${w.pePH}/${w.pePT}` : '—';
     const ceFmt     = w.cePH !== null ? `${w.cePH}/${w.cePT}` : '—';
     const appxFmt   = w.appxPH !== null ? `${w.appxPH}/${w.appxPT}` : '—';
@@ -739,7 +744,7 @@
       <td class="cell-profile">${appxFmt}</td>
       <td style="font-size:12.5px;color:var(--text-muted)">${w.released || '—'}</td>
       <td class="cell-msu ${msuClass}">${w.msu !== null ? w.msu : '—'}</td>
-      <td style="font-size:12.5px">${w.wdist !== null ? w.wdist : '—'}</td>
+      <td class="${wdistClass}" style="font-size:12.5px">${w.wdist !== null ? w.wdist : '—'}</td>
       <td><span class="pos-badge ${posCls}"><span class="pos-dot"></span>${w.position}</span></td>
       <td>
         <div class="action-btns">
