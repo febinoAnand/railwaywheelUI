@@ -132,6 +132,8 @@
       box-shadow: 0 2px 10px rgba(10,42,74,.07);
       overflow: hidden;
       margin-bottom: 22px;
+      display: flex;
+      flex-direction: column;
     }
     .widget-head {
       padding: 14px 20px;
@@ -149,7 +151,7 @@
     .badge-amber { background: #fff8e8 !important; color: #92600a !important; }
     .badge-red   { background: #fff5f5 !important; color: var(--danger) !important; }
     .badge-green { background: #f0fff4 !important; color: #276749 !important; }
-    .widget-body { padding: 20px; }
+    .widget-body { padding: 20px; flex: 1; }
 
     /* ── Wheel Position table ── */
     .pos-table {
@@ -181,9 +183,38 @@
     }
     .pos-table tr:hover td { background: #edf5ff !important; }
     .pos-table .wap5  { color: #0f3d6e; font-weight: 700; }
+    .pos-table thead th.wap5 { color: #93c5fd; }
     .pos-table .wag7  { color: #276749; font-weight: 700; }
     .pos-table .wap7  { color: #6b46c1; font-weight: 700; }
     .pos-table .eled  { background: #fffbeb !important; }
+
+    /* ── Recent activity mini list ── */
+    .recent-act { margin-top: 18px; border-top: 1px solid #e8eef5; padding-top: 14px; }
+    .recent-act-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+    .recent-act-title a { font-size: 11px; font-weight: 600; color: var(--rail-mid); text-decoration: none; letter-spacing: 0; text-transform: none; }
+    .recent-act-title a:hover { text-decoration: underline; }
+    .ra-item { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 1px solid #f0f4f8; }
+    .ra-item:last-child { border-bottom: none; }
+    .ra-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .ra-dot.created  { background: #22c55e; }
+    .ra-dot.updated  { background: #3b82f6; }
+    .ra-dot.deleted  { background: var(--danger); }
+    .ra-dot.status   { background: #a855f7; }
+    .ra-dot.restored { background: #06b6d4; }
+    .ra-dot.exported { background: #94a3b8; }
+    .ra-body { flex: 1; min-width: 0; }
+    .ra-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .ra-action { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+    .ra-action.created  { background: #f0fdf4; color: #15803d; }
+    .ra-action.updated  { background: #eff6ff; color: #1d4ed8; }
+    .ra-action.deleted  { background: #fff5f5; color: var(--danger); }
+    .ra-action.status   { background: #faf5ff; color: #6b21a8; }
+    .ra-action.restored { background: #f0f9ff; color: #0369a1; }
+    .ra-action.exported { background: #f8fafc; color: var(--text-muted); border: 1px solid #e2e8f0; }
+    .ra-ref  { font-size: 12px; font-weight: 700; color: var(--rail-blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
+    .ra-user { font-size: 11px; color: var(--text-muted); }
+    .ra-time { font-size: 10.5px; color: #94aab8; white-space: nowrap; flex-shrink: 0; }
+    .ra-desc { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     /* ── Wear limits ── */
     .wear-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -433,7 +464,7 @@
       </div>
 
       <!-- ── Row: Wheel Position table + Wear Limits ── -->
-      <div class="two-col" style="align-items:start">
+      <div class="two-col" style="align-items:stretch">
 
         <!-- Wheel Position Summary -->
         <div class="widget">
@@ -444,7 +475,7 @@
             </h2>
             <span class="badge">As on 13/05/26</span>
           </div>
-          <div class="widget-body" style="padding:0">
+          <div class="widget-body" style="padding:0;display:flex;flex-direction:column;">
             <table class="pos-table">
               <thead>
                 <tr>
@@ -489,9 +520,9 @@
             </table>
 
             <!-- Position bar chart -->
-            <div style="padding:20px 20px 16px">
+            <div style="padding:20px 20px 16px;flex:1;display:flex;flex-direction:column;min-height:180px;">
               <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Loco Type Distribution</div>
-              <div class="chart-wrap" style="height:180px">
+              <div class="chart-wrap" style="flex:1;height:auto;min-height:160px;">
                 <canvas id="posChart"></canvas>
               </div>
             </div>
@@ -532,20 +563,22 @@
               </div>
             </div>
 
-            <!-- Wear comparison bar chart -->
-            <div style="margin-top:20px">
-              <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Before vs After WT Comparison</div>
-              <div class="chart-wrap" style="height:160px">
-                <canvas id="wearChart"></canvas>
+            <!-- Recent Activity -->
+            <div class="recent-act">
+              <div class="recent-act-title">
+                Recent Activity
+                <a href="activity-log.html">View all →</a>
               </div>
+              <div id="recentActList"></div>
             </div>
+
           </div>
         </div>
 
       </div>
 
       <!-- ── Row: Wheel Status + After WT tables ── -->
-      <div class="two-col" style="align-items:start">
+      <div class="two-col" style="align-items:stretch">
 
         <!-- Wheel Status -->
         <div class="widget">
@@ -640,7 +673,7 @@
       </div>
 
       <!-- ── Row: Defects LW/PER + GOC Shed ── -->
-      <div class="two-col" style="align-items:start">
+      <div class="two-col" style="align-items:stretch">
 
         <!-- Wheels at LW/PER -->
         <div class="widget">
@@ -732,31 +765,6 @@
         </div>
       </div>
 
-      <!-- ── Legend ── -->
-      <div class="widget">
-        <div class="widget-head">
-          <h2>Legend</h2>
-        </div>
-        <div class="widget-body">
-          <div class="legend">
-            <div class="legend-item"><div class="legend-dot leg-lathe"></div>At Wheel Lathe</div>
-            <div class="legend-item"><div class="legend-dot leg-attn"></div>Attention Required</div>
-            <div class="legend-item"><div class="legend-dot leg-good"></div>Within Limits</div>
-            <div class="legend-item"><div class="legend-dot leg-scrap"></div>Critical / Scrap</div>
-          </div>
-          <div class="attn-row" style="margin-top:14px">
-            <div class="attn-pill attn-lathe">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.553.553 0 0 1-1.1 0L7.1 4.995z"/></svg>
-              At Wheel Lathe
-            </div>
-            <div class="attn-pill attn-attn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
-              Attention Required
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 
@@ -793,35 +801,38 @@
       }
     });
 
-    // ── 2. Wear Limits Chart ──
+    // ── 2. Recent Activity ──
+    const RECENT_ACTS = [
+      { action:'Exported',     axle:'—',         loco:'—',       user:'A. Kumar',         date:'11.06.2026', time:'16:10', desc:'June 2026 activity report exported to CSV.' },
+      { action:'Created',      axle:'HH-74-52',  loco:'27901/3', user:'L. Fernandez',     date:'11.06.2026', time:'14:05', desc:'New wheel asset record created.' },
+      { action:'Status Change',axle:'HH-33-87',  loco:'27901/2', user:'P. Krishnamurthy', date:'11.06.2026', time:'11:40', desc:'Supervisor approved wheel for turning shop.' },
+      { action:'Updated',      axle:'HH-33-87',  loco:'27901/2', user:'R. Sharma',        date:'11.06.2026', time:'11:15', desc:'Diameter corrected after re-measurement.' },
+      { action:'Created',      axle:'HH-33-87',  loco:'27901/2', user:'R. Sharma',        date:'11.06.2026', time:'08:30', desc:'New wheel asset record created.' },
+      { action:'Updated',      axle:'ELW-3012',  loco:'27855/6', user:'D. Nair',          date:'10.06.2026', time:'15:50', desc:'MSU re-checked after axle box adjustment.' },
+    ];
+    const DOT_MAP = { 'Created':'created','Updated':'updated','Deleted':'deleted','Status Change':'status','Restored':'restored','Exported':'exported' };
+    document.getElementById('recentActList').innerHTML = RECENT_ACTS.map(a => {
+      const cls = (DOT_MAP[a.action] || 'updated');
+      return `<div class="ra-item">
+        <div class="ra-dot ${cls}"></div>
+        <div class="ra-body">
+          <div class="ra-meta">
+            <span class="ra-action ${cls}">${a.action}</span>
+            <span class="ra-ref" title="${a.axle}">${a.axle}</span>
+            <span class="ra-user">${a.user}</span>
+            <span class="ra-time">${a.date} ${a.time}</span>
+          </div>
+          <div class="ra-desc">${a.desc}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // ── 3. Wear Limits — populate values from settings ──
     const _wl = JSON.parse(localStorage.getItem('rt_wear_limits') || '{}');
-    const wlAfterRoot   = _wl.afterRootWear   !== undefined ? parseFloat(_wl.afterRootWear)   : 1.5;
-    const wlAfterFlange = _wl.afterFlangeWear !== undefined ? parseFloat(_wl.afterFlangeWear) : 1.2;
-    const wlBeforeRoot  = _wl.beforeRootWear  !== undefined ? parseFloat(_wl.beforeRootWear)  : 4.0;
-    const wlBeforeFlange= _wl.beforeFlangeWear!== undefined ? parseFloat(_wl.beforeFlangeWear): 2.0;
-    document.getElementById('wlAfterRoot').textContent    = wlAfterRoot;
-    document.getElementById('wlAfterFlange').textContent  = wlAfterFlange;
-    document.getElementById('wlBeforeRoot').textContent   = wlBeforeRoot;
-    document.getElementById('wlBeforeFlange').textContent = wlBeforeFlange;
-    new Chart(document.getElementById('wearChart'), {
-      type: 'bar',
-      data: {
-        labels: ['Root Wear', 'Flange Wear'],
-        datasets: [
-          { label: 'After WT',  data: [wlAfterRoot, wlAfterFlange],  backgroundColor: ['#3182ce', '#38a169'], borderRadius: 5 },
-          { label: 'Before WT', data: [wlBeforeRoot, wlBeforeFlange], backgroundColor: [danger, '#dd6b20'],    borderRadius: 5 },
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'top', labels: { boxWidth: 10, padding: 14 } } },
-        scales: {
-          x: { grid: { color: gridColor } },
-          y: { grid: { color: gridColor }, beginAtZero: true, max: 5,
-               ticks: { callback: v => v + ' mm' } }
-        }
-      }
-    });
+    document.getElementById('wlAfterRoot').textContent    = _wl.afterRootWear   !== undefined ? _wl.afterRootWear   : 1.5;
+    document.getElementById('wlAfterFlange').textContent  = _wl.afterFlangeWear !== undefined ? _wl.afterFlangeWear : 1.2;
+    document.getElementById('wlBeforeRoot').textContent   = _wl.beforeRootWear  !== undefined ? _wl.beforeRootWear  : 4.0;
+    document.getElementById('wlBeforeFlange').textContent = _wl.beforeFlangeWear!== undefined ? _wl.beforeFlangeWear: 2.0;
 
     // ── 3. Diameter Distribution Chart ──
     const diaLabels = ['<1030', '1031-1040', '1041-1050', '1051-1060', '1061-1070', '1071-1080', '1081-1090', '>1090'];
