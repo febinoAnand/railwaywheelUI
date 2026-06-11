@@ -247,6 +247,14 @@
     input.no-icon, select.no-icon, textarea.no-icon {
       padding-left: 12px;
     }
+    input.calc-input, input.calc-input.no-icon {
+      background: #eef6ff;
+      color: var(--rail-blue);
+      cursor: default;
+      border-color: #b8d4f0;
+      font-weight: 500;
+    }
+    input.calc-input:focus { border-color: #b8d4f0; box-shadow: none; background: #eef6ff; }
     select { appearance: none; cursor: pointer; }
     textarea { resize: vertical; min-height: 80px; }
 
@@ -589,15 +597,15 @@
                 <label>Wheel Diameter <span class="req">*</span></label>
                 <div class="input-wrap">
                   <svg class="fi" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/></svg>
-                  <input type="number" id="wheelDia" placeholder="e.g. 1028" step="0.1" required />
+                  <input type="number" id="wheelDia" placeholder="e.g. 1028" step="0.1" required oninput="calcApproxFields()" />
                 </div>
               </div>
 
               <div class="field">
-                <label>Approx Dia After WT</label>
+                <label>Approx Dia After WT &nbsp;<small style="text-transform:none;font-weight:400;color:#4a90c4;font-style:italic">(auto)</small></label>
                 <div class="input-wrap">
-                  <svg class="fi" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/></svg>
-                  <input type="number" id="approxDiaAfterWT" placeholder="e.g. 1028" step="0.1" />
+                  <svg class="fi" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#4a90c4" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/></svg>
+                  <input type="number" id="approxDiaAfterWT" placeholder="—" step="0.01" class="calc-input" readonly />
                 </div>
               </div>
 
@@ -629,10 +637,10 @@
                 <div class="profile-pair">
                   <div class="input-wrap" style="flex:1">
                     <svg class="fi" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/></svg>
-                    <input type="number" id="profilePE1" placeholder="height" step="0.01" />
+                    <input type="number" id="profilePE1" placeholder="height" step="0.01" oninput="calcApproxFields()" />
                   </div>
                   <span class="sep">/</span>
-                  <input type="number" id="profilePE2" placeholder="thickness" step="0.01" class="no-icon" style="flex:1;border-radius:var(--radius);border:1.5px solid #d0dde8;padding:10px 12px;font-size:13.5px;background:#f8fafc;outline:none;" />
+                  <input type="number" id="profilePE2" placeholder="thickness" step="0.01" class="no-icon" style="flex:1;border-radius:var(--radius);border:1.5px solid #d0dde8;padding:10px 12px;font-size:13.5px;background:#f8fafc;outline:none;" oninput="calcApproxFields()" />
                 </div>
               </div>
 
@@ -641,22 +649,22 @@
                 <div class="profile-pair">
                   <div class="input-wrap" style="flex:1">
                     <svg class="fi" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/></svg>
-                    <input type="number" id="profileCE1" placeholder="height" step="0.01" />
+                    <input type="number" id="profileCE1" placeholder="height" step="0.01" oninput="calcApproxFields()" />
                   </div>
                   <span class="sep">/</span>
-                  <input type="number" id="profileCE2" placeholder="thickness" step="0.01" class="no-icon" style="flex:1;border-radius:var(--radius);border:1.5px solid #d0dde8;padding:10px 12px;font-size:13.5px;background:#f8fafc;outline:none;" />
+                  <input type="number" id="profileCE2" placeholder="thickness" step="0.01" class="no-icon" style="flex:1;border-radius:var(--radius);border:1.5px solid #d0dde8;padding:10px 12px;font-size:13.5px;background:#f8fafc;outline:none;" oninput="calcApproxFields()" />
                 </div>
               </div>
 
               <div class="field">
-                <label>Appx Profile After WT &nbsp;<small style="text-transform:none;font-weight:400;color:#b0c0cc">(height / thickness)</small></label>
+                <label>Appx Profile After WT &nbsp;<small style="text-transform:none;font-weight:400;color:#4a90c4;font-style:italic">(auto — from Settings wear limits)</small></label>
                 <div class="profile-pair">
                   <div class="input-wrap" style="flex:1">
-                    <svg class="fi" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/></svg>
-                    <input type="number" id="appxProfileWT1" placeholder="height" step="0.01" />
+                    <svg class="fi" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#4a90c4" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/></svg>
+                    <input type="number" id="appxProfileWT1" placeholder="—" step="0.01" class="calc-input" readonly />
                   </div>
                   <span class="sep">/</span>
-                  <input type="number" id="appxProfileWT2" placeholder="thickness" step="0.01" class="no-icon" style="flex:1;border-radius:var(--radius);border:1.5px solid #d0dde8;padding:10px 12px;font-size:13.5px;background:#f8fafc;outline:none;" />
+                  <input type="number" id="appxProfileWT2" placeholder="—" step="0.01" class="no-icon calc-input" style="flex:1;border-radius:var(--radius);border:1.5px solid #b8d4f0;padding:10px 12px;font-size:13.5px;background:#eef6ff;color:var(--rail-blue);font-weight:500;outline:none;" readonly />
                 </div>
               </div>
 
@@ -811,16 +819,14 @@
     }
 
     // Section 2 – Measurements
-    set('wheelDia',        w.dia);
-    set('approxDiaAfterWT', w.approxDia);
-    set('msuPlay',         w.msu);
-    set('wheelDistance',   w.wdist);
-    set('profilePE1',      w.pePH);
-    set('profilePE2',      w.pePT);
-    set('profileCE1',      w.cePH);
-    set('profileCE2',      w.cePT);
-    set('appxProfileWT1',  w.appxPH);
-    set('appxProfileWT2',  w.appxPT);
+    set('wheelDia',      w.dia);
+    set('msuPlay',       w.msu);
+    set('wheelDistance', w.wdist);
+    set('profilePE1',    w.pePH);
+    set('profilePE2',    w.pePT);
+    set('profileCE1',    w.cePH);
+    set('profileCE2',    w.cePT);
+    calcApproxFields();
 
     // Section 3 – Position
     const radio = document.querySelector(`input[name="wheelPosition"][value="${w.position}"]`);
@@ -829,6 +835,28 @@
     // Remarks
     set('remarks', w.remarks);
   })();
+
+    // ── Auto-calculate Approx Dia & Profile After WT ──
+    function calcApproxFields() {
+      const dia  = parseFloat(document.getElementById('wheelDia').value);
+      const pePH = parseFloat(document.getElementById('profilePE1').value);
+      const cePH = parseFloat(document.getElementById('profileCE1').value);
+
+      const limits      = JSON.parse(localStorage.getItem('rt_wear_limits') || '{}');
+      const afterRoot   = limits.afterRootWear   !== undefined ? parseFloat(limits.afterRootWear)   : 1.5;
+      const afterFlange = limits.afterFlangeWear !== undefined ? parseFloat(limits.afterFlangeWear) : 1.2;
+
+      // Diameter: reduce by 2× the excess of worst root height over after-WT limit
+      const worstH  = Math.max(isNaN(pePH) ? 0 : pePH, isNaN(cePH) ? 0 : cePH);
+      const diaDrop = 2 * Math.max(0, worstH - afterRoot);
+      document.getElementById('approxDiaAfterWT').value =
+        !isNaN(dia) ? parseFloat((dia - diaDrop).toFixed(2)) : '';
+
+      // Profile: fixed to the after-WT wear limits from Settings
+      document.getElementById('appxProfileWT1').value = afterRoot;
+      document.getElementById('appxProfileWT2').value = afterFlange;
+    }
+    calcApproxFields();
 
     // ── Form actions ──
     function handleSubmit(e) {

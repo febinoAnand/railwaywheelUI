@@ -323,7 +323,7 @@
       </div>
     </div>
     <nav>
-      <!-- <!-- <a class="nav-item active" href="dashboard.html">
+      <a class="nav-item active" href="dashboard.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.293l6 6V13.5a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5v-3h-2v3a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5V9.293l6-6zm-5 6.707V13h3v-3h4v3h3V9.707L8 4.707 3 9.707z"/><path d="M13 2.5V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z"/></svg>
         Dashboard
       </a>
@@ -512,22 +512,22 @@
                 <div class="wear-section-title after">Wear Limit — After WT</div>
                 <div class="wear-item root-after">
                   <span class="wear-label">Root Wear</span>
-                  <span class="wear-val">1.5</span>
+                  <span class="wear-val" id="wlAfterRoot">1.5</span>
                 </div>
                 <div class="wear-item flange-after">
                   <span class="wear-label">Flange Wear</span>
-                  <span class="wear-val">1.2</span>
+                  <span class="wear-val" id="wlAfterFlange">1.2</span>
                 </div>
               </div>
               <div>
                 <div class="wear-section-title before">Wear Limit — Before WT</div>
                 <div class="wear-item root-before">
                   <span class="wear-label">Root Wear</span>
-                  <span class="wear-val">4.0</span>
+                  <span class="wear-val" id="wlBeforeRoot">4.0</span>
                 </div>
                 <div class="wear-item flange-before">
                   <span class="wear-label">Flange Wear</span>
-                  <span class="wear-val">2.0</span>
+                  <span class="wear-val" id="wlBeforeFlange">2.0</span>
                 </div>
               </div>
             </div>
@@ -794,13 +794,22 @@
     });
 
     // ── 2. Wear Limits Chart ──
+    const _wl = JSON.parse(localStorage.getItem('rt_wear_limits') || '{}');
+    const wlAfterRoot   = _wl.afterRootWear   !== undefined ? parseFloat(_wl.afterRootWear)   : 1.5;
+    const wlAfterFlange = _wl.afterFlangeWear !== undefined ? parseFloat(_wl.afterFlangeWear) : 1.2;
+    const wlBeforeRoot  = _wl.beforeRootWear  !== undefined ? parseFloat(_wl.beforeRootWear)  : 4.0;
+    const wlBeforeFlange= _wl.beforeFlangeWear!== undefined ? parseFloat(_wl.beforeFlangeWear): 2.0;
+    document.getElementById('wlAfterRoot').textContent    = wlAfterRoot;
+    document.getElementById('wlAfterFlange').textContent  = wlAfterFlange;
+    document.getElementById('wlBeforeRoot').textContent   = wlBeforeRoot;
+    document.getElementById('wlBeforeFlange').textContent = wlBeforeFlange;
     new Chart(document.getElementById('wearChart'), {
       type: 'bar',
       data: {
         labels: ['Root Wear', 'Flange Wear'],
         datasets: [
-          { label: 'After WT', data: [1.5, 1.2], backgroundColor: ['#3182ce', '#38a169'], borderRadius: 5 },
-          { label: 'Before WT', data: [4.0, 2.0], backgroundColor: [danger, '#dd6b20'], borderRadius: 5 },
+          { label: 'After WT',  data: [wlAfterRoot, wlAfterFlange],  backgroundColor: ['#3182ce', '#38a169'], borderRadius: 5 },
+          { label: 'Before WT', data: [wlBeforeRoot, wlBeforeFlange], backgroundColor: [danger, '#dd6b20'],    borderRadius: 5 },
         ]
       },
       options: {
