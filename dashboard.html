@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — RailTrack QR</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -186,6 +187,8 @@
     .pos-table thead th.wap5 { color: #93c5fd; }
     .pos-table .wag7  { color: #276749; font-weight: 700; }
     .pos-table .wap7  { color: #6b46c1; font-weight: 700; }
+    .pos-table .wag9  { color: #92400e; font-weight: 700; }
+    .pos-table thead th.wag9 { color: #fcd34d; }
     .pos-table .eled  { background: #fffbeb !important; }
 
     /* ── Recent activity mini list ── */
@@ -215,6 +218,22 @@
     .ra-user { font-size: 11px; color: var(--text-muted); }
     .ra-time { font-size: 10.5px; color: #94aab8; white-space: nowrap; flex-shrink: 0; }
     .ra-desc { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ── Wear limits all-types table ── */
+    .wl-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .wl-table th {
+      background: var(--rail-blue); color: var(--white);
+      padding: 9px 10px; font-weight: 600; text-align: center; font-size: 12px;
+    }
+    .wl-table th:first-child { text-align: left; font-weight: 500; color: var(--steel); }
+    .wl-table td { padding: 8px 10px; border-bottom: 1px solid #edf2f7; text-align: center; font-weight: 700; font-size: 13px; }
+    .wl-table td:first-child { text-align: left; font-weight: 500; color: var(--text-muted); font-size: 12px; background: #f8fafc !important; }
+    .wl-table .wl-after-row td { background: #eef6ff; }
+    .wl-table .wl-before-row td { background: #fff5f5; }
+    .wl-table th.wl-wap5 { color: #93c5fd; }
+    .wl-table th.wl-wag7 { color: #a5f3c1; }
+    .wl-table th.wl-wap7 { color: #d8b4fe; }
+    .wl-table th.wl-wag9 { color: #fcd34d; }
 
     /* ── Wear limits ── */
     .wear-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -308,6 +327,17 @@
     .mini-stat:last-child { border-right: none; }
     .mini-stat .ms-val { font-size: 22px; font-weight: 800; color: var(--rail-blue); }
     .mini-stat .ms-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── Widget type tabs (diameter + defect) ── */
+    .dia-tabs { display: flex; border-bottom: 1px solid #e8eef5; background: #f8fafc; }
+    .dia-tab, .defect-tab {
+      flex: 1; padding: 8px 4px; font-size: 12px; font-weight: 600;
+      border: none; background: transparent; color: var(--text-muted);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s, background .15s;
+    }
+    .dia-tab:hover, .defect-tab:hover { color: var(--rail-blue); background: rgba(10,42,74,.04); }
+    .dia-tab.active, .defect-tab.active { color: var(--rail-mid); border-bottom-color: var(--rail-mid); background: var(--white); }
 
     /* attention pills */
     .attn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
@@ -424,7 +454,7 @@
           <div>
             <div class="stat-val">117</div>
             <div class="stat-lbl">Total Wheels Tracked</div>
-            <div class="stat-sub"><span class="up">▲ WAP5: 2 &nbsp;·&nbsp; WAG7: 37 &nbsp;·&nbsp; WAP7: 78</span></div>
+            <div class="stat-sub"><span class="up">▲ WAP5: 2 &nbsp;·&nbsp; WAG7: 37 &nbsp;·&nbsp; WAP7: 78 &nbsp;·&nbsp; WAG9: 4</span></div>
           </div>
         </div>
 
@@ -435,7 +465,7 @@
           <div>
             <div class="stat-val">94</div>
             <div class="stat-lbl">ELS / ED Wheels</div>
-            <div class="stat-sub">WAP5: 1 &nbsp;·&nbsp; WAG7: 21 &nbsp;·&nbsp; WAP7: 73</div>
+            <div class="stat-sub">WAP5: 1 &nbsp;·&nbsp; WAG7: 21 &nbsp;·&nbsp; WAP7: 73 &nbsp;·&nbsp; WAG9: 4</div>
           </div>
         </div>
 
@@ -483,6 +513,7 @@
                   <th class="wap5">WAP 5</th>
                   <th class="wag7" style="color:#a5f3c1">WAG 7</th>
                   <th class="wap7" style="color:#d8b4fe">WAP 7</th>
+                  <th class="wag9">WAG 9</th>
                 </tr>
               </thead>
               <tbody>
@@ -491,30 +522,35 @@
                   <td class="wap5">1</td>
                   <td class="wag7">0</td>
                   <td class="wap7">5</td>
+                  <td class="wag9 zero">0</td>
                 </tr>
                 <tr>
                   <td>ELS/ED (Loco Account)</td>
                   <td class="wap5">0</td>
                   <td class="wag7">0</td>
                   <td class="wap7 zero">0</td>
+                  <td class="wag9 zero">0</td>
                 </tr>
                 <tr>
                   <td>GOC</td>
                   <td class="wap5 zero">0</td>
                   <td class="wag7">16</td>
                   <td class="wap7 zero">0</td>
+                  <td class="wag9 zero">0</td>
                 </tr>
                 <tr class="eled">
                   <td>ELS / ED</td>
                   <td class="wap5">1</td>
                   <td class="wag7">21</td>
                   <td class="wap7">73</td>
+                  <td class="wag9">4</td>
                 </tr>
                 <tr class="total-row">
                   <td>TOTAL</td>
                   <td>2</td>
                   <td>37</td>
                   <td>78</td>
+                  <td>4</td>
                 </tr>
               </tbody>
             </table>
@@ -537,34 +573,51 @@
               Wheel Wear Limits
             </h2>
           </div>
-          <div class="widget-body">
-            <div class="wear-grid">
-              <div>
-                <div class="wear-section-title after">Wear Limit — After WT</div>
-                <div class="wear-item root-after">
-                  <span class="wear-label">Root Wear</span>
-                  <span class="wear-val" id="wlAfterRoot">1.5</span>
-                </div>
-                <div class="wear-item flange-after">
-                  <span class="wear-label">Flange Wear</span>
-                  <span class="wear-val" id="wlAfterFlange">1.2</span>
-                </div>
-              </div>
-              <div>
-                <div class="wear-section-title before">Wear Limit — Before WT</div>
-                <div class="wear-item root-before">
-                  <span class="wear-label">Root Wear</span>
-                  <span class="wear-val" id="wlBeforeRoot">4.0</span>
-                </div>
-                <div class="wear-item flange-before">
-                  <span class="wear-label">Flange Wear</span>
-                  <span class="wear-val" id="wlBeforeFlange">2.0</span>
-                </div>
-              </div>
-            </div>
+          <div class="widget-body" style="padding:0">
+            <table class="wl-table">
+              <thead>
+                <tr>
+                  <th>Limit</th>
+                  <th class="wl-wap5">WAP 5</th>
+                  <th class="wl-wag7">WAG 7</th>
+                  <th class="wl-wap7">WAP 7</th>
+                  <th class="wl-wag9">WAG 9</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="wl-after-row">
+                  <td>After WT — Root</td>
+                  <td id="wl_afterRoot_WAP5">—</td>
+                  <td id="wl_afterRoot_WAG7">—</td>
+                  <td id="wl_afterRoot_WAP7">—</td>
+                  <td id="wl_afterRoot_WAG9">—</td>
+                </tr>
+                <tr class="wl-after-row">
+                  <td>After WT — Flange</td>
+                  <td id="wl_afterFlange_WAP5">—</td>
+                  <td id="wl_afterFlange_WAG7">—</td>
+                  <td id="wl_afterFlange_WAP7">—</td>
+                  <td id="wl_afterFlange_WAG9">—</td>
+                </tr>
+                <tr class="wl-before-row">
+                  <td>Before WT — Root</td>
+                  <td id="wl_beforeRoot_WAP5">—</td>
+                  <td id="wl_beforeRoot_WAG7">—</td>
+                  <td id="wl_beforeRoot_WAP7">—</td>
+                  <td id="wl_beforeRoot_WAG9">—</td>
+                </tr>
+                <tr class="wl-before-row">
+                  <td>Before WT — Flange</td>
+                  <td id="wl_beforeFlange_WAP5">—</td>
+                  <td id="wl_beforeFlange_WAG7">—</td>
+                  <td id="wl_beforeFlange_WAP7">—</td>
+                  <td id="wl_beforeFlange_WAG9">—</td>
+                </tr>
+              </tbody>
+            </table>
 
             <!-- Recent Activity -->
-            <div class="recent-act">
+            <div class="recent-act" style="padding:0 20px 16px; margin-top:16px">
               <div class="recent-act-title">
                 Recent Activity
                 <a href="activity-log.html">View all →</a>
@@ -590,28 +643,24 @@
             <span class="badge">Current</span>
           </div>
           <div class="widget-body" style="padding:0">
+            <div class="dia-tabs" id="diaTabs">
+              <button class="dia-tab active" data-type="WAP5" onclick="switchAllDiaTabs('WAP5')">WAP 5</button>
+              <button class="dia-tab" data-type="WAG7" onclick="switchAllDiaTabs('WAG7')">WAG 7</button>
+              <button class="dia-tab" data-type="WAP7" onclick="switchAllDiaTabs('WAP7')">WAP 7</button>
+              <button class="dia-tab" data-type="WAG9" onclick="switchAllDiaTabs('WAG9')">WAG 9</button>
+            </div>
             <div class="mini-stats">
-              <div class="mini-stat"><div class="ms-val">21</div><div class="ms-lbl">Total</div></div>
-              <div class="mini-stat"><div class="ms-val" style="color:var(--danger)">2</div><div class="ms-lbl">&lt;1030 mm</div></div>
-              <div class="mini-stat"><div class="ms-val" style="color:#38a169">9</div><div class="ms-lbl">1031–1040</div></div>
-              <div class="mini-stat"><div class="ms-val" style="color:#6b46c1">1</div><div class="ms-lbl">&gt;1090 mm</div></div>
+              <div class="mini-stat"><div class="ms-val" id="dmTotal">—</div><div class="ms-lbl">Total</div></div>
+              <div class="mini-stat"><div class="ms-val" style="color:var(--danger)" id="dmCrit">—</div><div class="ms-lbl">&lt;1030 mm</div></div>
+              <div class="mini-stat"><div class="ms-val" style="color:#38a169" id="dmGood">—</div><div class="ms-lbl">1031–1040</div></div>
+              <div class="mini-stat"><div class="ms-val" style="color:#6b46c1" id="dmHigh">—</div><div class="ms-lbl">&gt;1090 mm</div></div>
             </div>
             <div style="padding:16px">
               <table class="data-table">
                 <thead>
                   <tr><th>Dia Range (mm)</th><th>No. of Wheels</th></tr>
                 </thead>
-                <tbody>
-                  <tr class="dia-crit"><td>&lt; 1030</td><td>2</td></tr>
-                  <tr class="dia-good"><td>1031 – 1040</td><td>9</td></tr>
-                  <tr><td>1041 – 1050</td><td class="zero">0</td></tr>
-                  <tr><td>1051 – 1060</td><td>7</td></tr>
-                  <tr><td>1061 – 1070</td><td>2</td></tr>
-                  <tr><td>1071 – 1080</td><td class="zero">0</td></tr>
-                  <tr><td>1081 – 1090</td><td class="zero">0</td></tr>
-                  <tr><td>&gt; 1090</td><td>1</td></tr>
-                  <tr class="total-row"><td>Total</td><td>21</td></tr>
-                </tbody>
+                <tbody id="diaTableBody"></tbody>
               </table>
             </div>
           </div>
@@ -627,28 +676,24 @@
             <span class="badge badge-green">Post Wheel Turning</span>
           </div>
           <div class="widget-body" style="padding:0">
+            <div class="dia-tabs" id="diaAfterTabs">
+              <button class="dia-tab active" data-type="WAP5" onclick="switchAllDiaTabs('WAP5')">WAP 5</button>
+              <button class="dia-tab" data-type="WAG7" onclick="switchAllDiaTabs('WAG7')">WAG 7</button>
+              <button class="dia-tab" data-type="WAP7" onclick="switchAllDiaTabs('WAP7')">WAP 7</button>
+              <button class="dia-tab" data-type="WAG9" onclick="switchAllDiaTabs('WAG9')">WAG 9</button>
+            </div>
             <div class="mini-stats">
-              <div class="mini-stat"><div class="ms-val">21</div><div class="ms-lbl">Total</div></div>
-              <div class="mini-stat"><div class="ms-val" style="color:var(--danger)">2</div><div class="ms-lbl">&lt;1030 mm</div></div>
-              <div class="mini-stat"><div class="ms-val" style="color:#38a169">9</div><div class="ms-lbl">1031–1040</div></div>
-              <div class="mini-stat"><div class="ms-val" style="color:#6b46c1">1</div><div class="ms-lbl">&gt;1090 mm</div></div>
+              <div class="mini-stat"><div class="ms-val" id="daTotal">—</div><div class="ms-lbl">Total</div></div>
+              <div class="mini-stat"><div class="ms-val" style="color:var(--danger)" id="daCrit">—</div><div class="ms-lbl">&lt;1030 mm</div></div>
+              <div class="mini-stat"><div class="ms-val" style="color:#38a169" id="daGood">—</div><div class="ms-lbl">1031–1040</div></div>
+              <div class="mini-stat"><div class="ms-val" style="color:#6b46c1" id="daHigh">—</div><div class="ms-lbl">&gt;1090 mm</div></div>
             </div>
             <div style="padding:16px">
               <table class="data-table">
                 <thead>
                   <tr><th>Dia Range (mm)</th><th>No. of Wheels</th></tr>
                 </thead>
-                <tbody>
-                  <tr class="dia-crit"><td>&lt; 1030</td><td>2</td></tr>
-                  <tr class="dia-good"><td>1031 – 1040</td><td>9</td></tr>
-                  <tr><td>1041 – 1050</td><td class="zero">0</td></tr>
-                  <tr><td>1051 – 1060</td><td>7</td></tr>
-                  <tr><td>1061 – 1070</td><td>2</td></tr>
-                  <tr><td>1071 – 1080</td><td class="zero">0</td></tr>
-                  <tr><td>1081 – 1090</td><td class="zero">0</td></tr>
-                  <tr><td>&gt; 1090</td><td>1</td></tr>
-                  <tr class="total-row"><td>Total</td><td>21</td></tr>
-                </tbody>
+                <tbody id="diaAfterTableBody"></tbody>
               </table>
             </div>
           </div>
@@ -656,20 +701,41 @@
 
       </div>
 
-      <!-- ── Diameter Distribution Bar Chart ── -->
-      <div class="widget" style="margin-bottom:22px">
-        <div class="widget-head">
-          <h2>
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/></svg>
-            Wheel Diameter Distribution — Current vs After WT
-          </h2>
-          <span class="badge">Bar Chart</span>
-        </div>
-        <div class="widget-body">
-          <div class="chart-wrap" style="height:260px">
-            <canvas id="diaChart"></canvas>
+      <!-- ── Diameter Distribution Bar Charts ── -->
+      <div class="two-col" style="align-items:stretch; margin-bottom:22px">
+
+        <!-- Current Diameter Distribution -->
+        <div class="widget">
+          <div class="widget-head">
+            <h2>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/></svg>
+              Current Diameter Distribution
+            </h2>
+            <span class="badge">By Loco Type</span>
+          </div>
+          <div class="widget-body">
+            <div class="chart-wrap" style="height:260px">
+              <canvas id="diaCurrentChart"></canvas>
+            </div>
           </div>
         </div>
+
+        <!-- After Wheel Turning Distribution -->
+        <div class="widget">
+          <div class="widget-head">
+            <h2>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/></svg>
+              After Wheel Turning Distribution
+            </h2>
+            <span class="badge badge-green">By Loco Type</span>
+          </div>
+          <div class="widget-body">
+            <div class="chart-wrap" style="height:260px">
+              <canvas id="diaAfterChart"></canvas>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- ── Row: Defects LW/PER + GOC Shed ── -->
@@ -685,27 +751,23 @@
             <span class="badge">Defect Summary</span>
           </div>
           <div class="widget-body" style="padding:0">
+            <div class="dia-tabs" id="lwTabs">
+              <button class="defect-tab active" data-type="WAP5" onclick="switchDefectTab('WAP5')">WAP 5</button>
+              <button class="defect-tab" data-type="WAG7" onclick="switchDefectTab('WAG7')">WAG 7</button>
+              <button class="defect-tab" data-type="WAP7" onclick="switchDefectTab('WAP7')">WAP 7</button>
+              <button class="defect-tab" data-type="WAG9" onclick="switchDefectTab('WAG9')">WAG 9</button>
+            </div>
             <div class="mini-stats">
-              <div class="mini-stat"><div class="ms-val zero" style="color:#b0c0cc">0</div><div class="ms-lbl">Total Defects</div></div>
-              <div class="mini-stat"><div class="ms-val zero" style="color:#b0c0cc">0</div><div class="ms-lbl">RD</div></div>
-              <div class="mini-stat"><div class="ms-val zero" style="color:#b0c0cc">0</div><div class="ms-lbl">WD</div></div>
+              <div class="mini-stat"><div class="ms-val" id="lwTotal">—</div><div class="ms-lbl">Total Defects</div></div>
+              <div class="mini-stat"><div class="ms-val" id="lwRD">—</div><div class="ms-lbl">RD</div></div>
+              <div class="mini-stat"><div class="ms-val" id="lwWD">—</div><div class="ms-lbl">WD</div></div>
             </div>
             <div style="padding:16px">
               <table class="data-table">
                 <thead>
                   <tr><th>Defect Type</th><th>No. of Wheels</th></tr>
                 </thead>
-                <tbody>
-                  <tr><td>RD</td><td class="zero">0</td></tr>
-                  <tr><td>RA</td><td class="zero">0</td></tr>
-                  <tr><td>WD</td><td class="zero">0</td></tr>
-                  <tr><td>MSU</td><td class="zero">0</td></tr>
-                  <tr><td>Step Size JD</td><td class="zero">0</td></tr>
-                  <tr><td>Step Size Thrower</td><td class="zero">0</td></tr>
-                  <tr><td>Disc Crack</td><td class="zero">0</td></tr>
-                  <tr><td>Bull Gear</td><td class="zero">0</td></tr>
-                  <tr class="total-row"><td>Total</td><td class="zero">0</td></tr>
-                </tbody>
+                <tbody id="lwTableBody"></tbody>
               </table>
             </div>
           </div>
@@ -718,30 +780,26 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
               Wheels at GOC Shed
             </h2>
-            <span class="badge badge-red">16 Defects</span>
+            <span class="badge badge-red" id="gocBadge">Defect Summary</span>
           </div>
           <div class="widget-body" style="padding:0">
+            <div class="dia-tabs" id="gocTabs">
+              <button class="defect-tab active" data-type="WAP5" onclick="switchDefectTab('WAP5')">WAP 5</button>
+              <button class="defect-tab" data-type="WAG7" onclick="switchDefectTab('WAG7')">WAG 7</button>
+              <button class="defect-tab" data-type="WAP7" onclick="switchDefectTab('WAP7')">WAP 7</button>
+              <button class="defect-tab" data-type="WAG9" onclick="switchDefectTab('WAG9')">WAG 9</button>
+            </div>
             <div class="mini-stats">
-              <div class="mini-stat"><div class="ms-val" style="color:var(--danger)">16</div><div class="ms-lbl">Total Defects</div></div>
-              <div class="mini-stat"><div class="ms-val" style="color:var(--danger)">16</div><div class="ms-lbl">RD</div></div>
-              <div class="mini-stat"><div class="ms-val zero" style="color:#b0c0cc">0</div><div class="ms-lbl">Others</div></div>
+              <div class="mini-stat"><div class="ms-val" id="gocTotal">—</div><div class="ms-lbl">Total Defects</div></div>
+              <div class="mini-stat"><div class="ms-val" id="gocRD">—</div><div class="ms-lbl">RD</div></div>
+              <div class="mini-stat"><div class="ms-val" id="gocOthers">—</div><div class="ms-lbl">Others</div></div>
             </div>
             <div style="padding:16px">
               <table class="data-table">
                 <thead>
                   <tr><th>Defect Type</th><th>No. of Wheels</th></tr>
                 </thead>
-                <tbody>
-                  <tr><td>RD</td><td style="color:var(--danger);font-weight:700">16</td></tr>
-                  <tr><td>RA</td><td class="zero">0</td></tr>
-                  <tr><td>WD</td><td class="zero">0</td></tr>
-                  <tr><td>MSU</td><td class="zero">0</td></tr>
-                  <tr><td>Step Size JD</td><td class="zero">0</td></tr>
-                  <tr><td>Step Size Thrower</td><td class="zero">0</td></tr>
-                  <tr><td>Disc Crack</td><td class="zero">0</td></tr>
-                  <tr><td>Bull Gear</td><td class="zero">0</td></tr>
-                  <tr class="total-row"><td>Total</td><td>16</td></tr>
-                </tbody>
+                <tbody id="gocTableBody"></tbody>
               </table>
             </div>
           </div>
@@ -749,28 +807,22 @@
 
       </div>
 
-      <!-- ── Defect Comparison Bar Chart ── -->
-      <div class="widget" style="margin-bottom:22px">
-        <div class="widget-head">
-          <h2>
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/></svg>
-            Defect Comparison — LW/PER vs GOC Shed
-          </h2>
-          <span class="badge badge-amber">Defect Analysis</span>
-        </div>
-        <div class="widget-body">
-          <div class="chart-wrap" style="height:240px">
-            <canvas id="defectChart"></canvas>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 
   <script>
+    Chart.register(ChartDataLabels);
     Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
     Chart.defaults.font.size   = 12;
+
+    const DL_CFG = {
+      anchor: 'end',
+      align: 'top',
+      offset: 2,
+      font: { size: 10, weight: '700' },
+      color: '#1a2b3c',
+      display: ctx => ctx.dataset.data[ctx.dataIndex] > 0,
+    };
 
     const railBlue  = '#0f3d6e';
     const railLight = 'rgba(15,61,110,.15)';
@@ -786,14 +838,19 @@
       data: {
         labels: ['LW/PER', 'ELS/ED (Loco)', 'GOC', 'ELS/ED'],
         datasets: [
-          { label: 'WAP 5', data: [1, 0, 0, 1], backgroundColor: '#3182ce', borderRadius: 4 },
+          { label: 'WAP 5', data: [1, 0, 0, 1],  backgroundColor: '#3182ce', borderRadius: 4 },
           { label: 'WAG 7', data: [0, 0, 16, 21], backgroundColor: '#38a169', borderRadius: 4 },
-          { label: 'WAP 7', data: [5, 0, 0, 73], backgroundColor: '#805ad5', borderRadius: 4 },
+          { label: 'WAP 7', data: [5, 0, 0, 73],  backgroundColor: '#805ad5', borderRadius: 4 },
+          { label: 'WAG 9', data: [0, 0, 0, 4],   backgroundColor: '#d97706', borderRadius: 4 },
         ]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'top', labels: { boxWidth: 10, padding: 14 } } },
+        layout: { padding: { top: 18 } },
+        plugins: {
+          legend: { position: 'top', labels: { boxWidth: 10, padding: 14 } },
+          datalabels: DL_CFG,
+        },
         scales: {
           x: { grid: { color: gridColor }, ticks: { font: { size: 11 } } },
           y: { grid: { color: gridColor }, beginAtZero: true, ticks: { stepSize: 10 } }
@@ -827,67 +884,160 @@
       </div>`;
     }).join('');
 
-    // ── 3. Wear Limits — populate values from settings ──
-    const _wl = JSON.parse(localStorage.getItem('rt_wear_limits') || '{}');
-    document.getElementById('wlAfterRoot').textContent    = _wl.afterRootWear   !== undefined ? _wl.afterRootWear   : 1.5;
-    document.getElementById('wlAfterFlange').textContent  = _wl.afterFlangeWear !== undefined ? _wl.afterFlangeWear : 1.2;
-    document.getElementById('wlBeforeRoot').textContent   = _wl.beforeRootWear  !== undefined ? _wl.beforeRootWear  : 4.0;
-    document.getElementById('wlBeforeFlange').textContent = _wl.beforeFlangeWear!== undefined ? _wl.beforeFlangeWear: 2.0;
+    // ── 2b. Wheel Status by Diameter — per-type tabs ──
+    const DIA_DATA = {
+      WAP5: {
+        current: { rows: [0, 3, 1, 2, 1, 0, 0, 2], crit: 0, good: 3, high: 2 },
+        afterWT:  { rows: [0, 4, 1, 1, 1, 0, 0, 2], crit: 0, good: 4, high: 2 },
+      },
+      WAG7: {
+        current: { rows: [2, 4, 0, 2, 1, 0, 0, 0], crit: 2, good: 4, high: 0 },
+        afterWT:  { rows: [0, 5, 0, 2, 1, 0, 0, 0], crit: 0, good: 5, high: 0 },
+      },
+      WAP7: {
+        current: { rows: [0, 2, 0, 4, 1, 0, 0, 1], crit: 0, good: 2, high: 1 },
+        afterWT:  { rows: [0, 3, 0, 3, 1, 0, 0, 1], crit: 0, good: 3, high: 1 },
+      },
+      WAG9: {
+        current: { rows: [0, 0, 0, 2, 2, 0, 0, 0], crit: 0, good: 0, high: 0 },
+        afterWT:  { rows: [0, 1, 0, 1, 2, 0, 0, 0], crit: 0, good: 1, high: 0 },
+      },
+    };
+    const DIA_LABELS    = ['&lt; 1030','1031 – 1040','1041 – 1050','1051 – 1060','1061 – 1070','1071 – 1080','1081 – 1090','&gt; 1090'];
+    const DIA_ROW_CLASS = ['dia-crit','dia-good','','','','','',''];
 
-    // ── 3. Diameter Distribution Chart ──
-    const diaLabels = ['<1030', '1031-1040', '1041-1050', '1051-1060', '1061-1070', '1071-1080', '1081-1090', '>1090'];
-    const diaData   = [2, 9, 0, 7, 2, 0, 0, 1];
-    new Chart(document.getElementById('diaChart'), {
+    function fillDiaTable(tbodyId, statsIds, d) {
+      const total = d.rows.reduce((a, b) => a + b, 0);
+      document.getElementById(statsIds[0]).textContent = total;
+      document.getElementById(statsIds[1]).textContent = d.crit;
+      document.getElementById(statsIds[2]).textContent = d.good;
+      document.getElementById(statsIds[3]).textContent = d.high;
+      document.getElementById(tbodyId).innerHTML =
+        DIA_LABELS.map((lbl, i) => {
+          const v = d.rows[i];
+          const rc = DIA_ROW_CLASS[i] ? ` class="${DIA_ROW_CLASS[i]}"` : '';
+          const tc = v === 0 ? ' class="zero"' : '';
+          return `<tr${rc}><td>${lbl}</td><td${tc}>${v}</td></tr>`;
+        }).join('') +
+        `<tr class="total-row"><td>Total</td><td>${total}</td></tr>`;
+    }
+
+    function switchAllDiaTabs(type) {
+      document.querySelectorAll('.dia-tab').forEach(t => t.classList.toggle('active', t.dataset.type === type));
+      const d = DIA_DATA[type];
+      fillDiaTable('diaTableBody',      ['dmTotal','dmCrit','dmGood','dmHigh'], d.current);
+      fillDiaTable('diaAfterTableBody', ['daTotal','daCrit','daGood','daHigh'], d.afterWT);
+    }
+    switchAllDiaTabs('WAP5');
+
+    // ── 2c. Defect Widgets (LW/PER + GOC Shed) — per-type tabs ──
+    const DEFECT_LABELS = ['RD','RA','WD','MSU','Step Size JD','Step Size Thrower','Disc Crack','Bull Gear'];
+    const DEFECT_DATA = {
+      WAP5: { lwper: [0,0,0,0,0,0,0,0], goc: [0,0,0,0,0,0,0,0] },
+      WAG7: { lwper: [0,0,0,0,0,0,0,0], goc: [16,0,0,0,0,0,0,0] },
+      WAP7: { lwper: [0,0,0,0,0,0,0,0], goc: [0,0,0,0,0,0,0,0] },
+      WAG9: { lwper: [0,0,0,0,0,0,0,0], goc: [0,0,0,0,0,0,0,0] },
+    };
+
+    function buildDefectRows(rows) {
+      const total = rows.reduce((a, b) => a + b, 0);
+      return DEFECT_LABELS.map((lbl, i) => {
+        const v = rows[i];
+        const tc = v > 0 ? ' style="color:var(--danger);font-weight:700"' : ' class="zero"';
+        return `<tr><td>${lbl}</td><td${tc}>${v}</td></tr>`;
+      }).join('') + `<tr class="total-row"><td>Total</td><td>${total}</td></tr>`;
+    }
+
+    function setMsStat(id, v) {
+      const el = document.getElementById(id);
+      el.textContent = v;
+      el.style.color = v > 0 ? 'var(--danger)' : '#b0c0cc';
+    }
+
+    function switchDefectTab(type) {
+      document.querySelectorAll('#lwTabs .defect-tab, #gocTabs .defect-tab').forEach(t => t.classList.toggle('active', t.dataset.type === type));
+      const d = DEFECT_DATA[type];
+      // LW/PER
+      const lwTotal = d.lwper.reduce((a, b) => a + b, 0);
+      setMsStat('lwTotal', lwTotal);
+      setMsStat('lwRD',    d.lwper[0]);
+      setMsStat('lwWD',    d.lwper[2]);
+      document.getElementById('lwTableBody').innerHTML = buildDefectRows(d.lwper);
+      // GOC Shed
+      const gocTotal  = d.goc.reduce((a, b) => a + b, 0);
+      const gocOthers = d.goc.slice(1).reduce((a, b) => a + b, 0);
+      setMsStat('gocTotal',  gocTotal);
+      setMsStat('gocRD',     d.goc[0]);
+      setMsStat('gocOthers', gocOthers);
+      document.getElementById('gocTableBody').innerHTML = buildDefectRows(d.goc);
+      const badge = document.getElementById('gocBadge');
+      badge.textContent = gocTotal > 0 ? `${gocTotal} Defects` : 'Defect Summary';
+    }
+    switchDefectTab('WAP5');
+
+    // ── 3. Wear Limits — all types ──
+    (function loadWearLimits() {
+      const defs   = { afterRoot: 1.5, afterFlange: 1.2, beforeRoot: 4.0, beforeFlange: 2.0 };
+      const types  = ['WAP5','WAG7','WAP7','WAG9'];
+      const fields = ['afterRoot','afterFlange','beforeRoot','beforeFlange'];
+      const saved  = JSON.parse(localStorage.getItem('rt_wear_limits') || '{}');
+      types.forEach(t => {
+        const d = (saved[t] && typeof saved[t] === 'object') ? saved[t] : {};
+        fields.forEach(f => {
+          const el = document.getElementById(`wl_${f}_${t}`);
+          if (el) el.textContent = d[f] !== undefined ? d[f] : defs[f];
+        });
+      });
+    })();
+
+    // ── 3. Diameter Distribution Charts (Current + After WT) ──
+    const diaLabels = ['<1030','1031-40','1041-50','1051-60','1061-70','1071-80','1081-90','>1090'];
+    const DIA_TYPE_COLORS = {
+      WAP5: 'rgba(15,61,110,.78)',
+      WAG7: 'rgba(56,161,105,.78)',
+      WAP7: 'rgba(107,70,193,.78)',
+      WAG9: 'rgba(245,166,35,.88)',
+    };
+    const diaChartOpts = {
+      responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 18 } },
+      plugins: {
+        legend: { position: 'top', labels: { boxWidth: 10, padding: 14, font: { size: 11 } } },
+        datalabels: DL_CFG,
+      },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { font: { size: 10 } } },
+        y: { grid: { color: gridColor }, beginAtZero: true, ticks: { stepSize: 1 },
+             title: { display: true, text: 'No. of Wheels', font: { size: 11 } } }
+      }
+    };
+    new Chart(document.getElementById('diaCurrentChart'), {
       type: 'bar',
       data: {
         labels: diaLabels,
         datasets: [
-          {
-            label: 'Current',
-            data: diaData,
-            backgroundColor: diaData.map((v, i) => i === 0 ? 'rgba(229,62,62,.75)' : i === 1 ? 'rgba(56,161,105,.75)' : 'rgba(15,61,110,.65)'),
-            borderRadius: 5,
-          },
-          {
-            label: 'After WT',
-            data: diaData, // same as current per reference image
-            backgroundColor: diaData.map((v, i) => i === 0 ? 'rgba(229,62,62,.35)' : i === 1 ? 'rgba(56,161,105,.35)' : 'rgba(15,61,110,.3)'),
-            borderRadius: 5,
-          }
+          { label: 'WAP 5', data: DIA_DATA.WAP5.current.rows, backgroundColor: DIA_TYPE_COLORS.WAP5, borderRadius: 4 },
+          { label: 'WAG 7', data: DIA_DATA.WAG7.current.rows, backgroundColor: DIA_TYPE_COLORS.WAG7, borderRadius: 4 },
+          { label: 'WAP 7', data: DIA_DATA.WAP7.current.rows, backgroundColor: DIA_TYPE_COLORS.WAP7, borderRadius: 4 },
+          { label: 'WAG 9', data: DIA_DATA.WAG9.current.rows, backgroundColor: DIA_TYPE_COLORS.WAG9, borderRadius: 4 },
         ]
       },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'top', labels: { boxWidth: 10, padding: 16 } } },
-        scales: {
-          x: { grid: { color: gridColor }, ticks: { font: { size: 11 } } },
-          y: { grid: { color: gridColor }, beginAtZero: true, ticks: { stepSize: 1 },
-               title: { display: true, text: 'No. of Wheels', font: { size: 12 } } }
-        }
-      }
+      options: diaChartOpts,
     });
-
-    // ── 4. Defect Comparison Chart ──
-    const defectLabels = ['RD', 'RA', 'WD', 'MSU', 'Step JD', 'Step Thrower', 'Disc Crack', 'Bull Gear'];
-    new Chart(document.getElementById('defectChart'), {
+    new Chart(document.getElementById('diaAfterChart'), {
       type: 'bar',
       data: {
-        labels: defectLabels,
+        labels: diaLabels,
         datasets: [
-          { label: 'LW / PER', data: [0, 0, 0, 0, 0, 0, 0, 0], backgroundColor: 'rgba(15,61,110,.7)', borderRadius: 4 },
-          { label: 'GOC Shed', data: [16, 0, 0, 0, 0, 0, 0, 0], backgroundColor: 'rgba(229,62,62,.75)', borderRadius: 4 },
+          { label: 'WAP 5', data: DIA_DATA.WAP5.afterWT.rows, backgroundColor: DIA_TYPE_COLORS.WAP5, borderRadius: 4 },
+          { label: 'WAG 7', data: DIA_DATA.WAG7.afterWT.rows, backgroundColor: DIA_TYPE_COLORS.WAG7, borderRadius: 4 },
+          { label: 'WAP 7', data: DIA_DATA.WAP7.afterWT.rows, backgroundColor: DIA_TYPE_COLORS.WAP7, borderRadius: 4 },
+          { label: 'WAG 9', data: DIA_DATA.WAG9.afterWT.rows, backgroundColor: DIA_TYPE_COLORS.WAG9, borderRadius: 4 },
         ]
       },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'top', labels: { boxWidth: 10, padding: 16 } } },
-        scales: {
-          x: { grid: { color: gridColor }, ticks: { font: { size: 11 } } },
-          y: { grid: { color: gridColor }, beginAtZero: true, ticks: { stepSize: 2 },
-               title: { display: true, text: 'No. of Wheels', font: { size: 12 } } }
-        }
-      }
+      options: diaChartOpts,
     });
+
   </script>
 
   <script>

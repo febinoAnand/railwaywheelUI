@@ -562,8 +562,9 @@
                 <label>Loco Type <span class="req">*</span></label>
                 <div class="input-wrap">
                   <svg class="fi" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/></svg>
-                  <select id="locoType" class="no-icon" style="padding-left:36px" required>
+                  <select id="locoType" class="no-icon" style="padding-left:36px" required onchange="calcApproxFields()">
                     <option value="">Select type…</option>
+                    <option value="WAP5">WAP5</option>
                     <option value="WAG7">WAG7</option>
                     <option value="WAP7">WAP7</option>
                     <option value="WAG9">WAG9</option>
@@ -688,8 +689,8 @@
                   HR Shop
                 </label>
                 <label class="pill-scrap">
-                  <input type="radio" name="wheelPosition" value="SCRAP" />
-                  Scrap
+                  <input type="radio" name="wheelPosition" value="YARD" />
+                  Yard
                 </label>
                 <label class="pill-wpark">
                   <input type="radio" name="wheelPosition" value="wheel park" />
@@ -770,17 +771,17 @@
   <script>
   // ── Wheel data (mirrors wheel-list.html) ──
   const ALL_WHEELS = [
-    { sl:1,  axle:'HH 34-63',  loco:'27497/5', type:'WAG7', dia:1028, pePH:1.37, pePT:0.72, cePH:1.65, cePT:0.47, approxDia:1028, appxPH:1.37, appxPT:0.72, released:'',           msu:1.37,  wdist:1596.80, position:'SCRAP',      remarks:'' },
+    { sl:1,  axle:'HH 34-63',  loco:'27497/5', type:'WAG7', dia:1028, pePH:1.37, pePT:0.72, cePH:1.65, cePT:0.47, approxDia:1028, appxPH:1.37, appxPT:0.72, released:'',           msu:1.37,  wdist:1596.80, position:'YARD',      remarks:'' },
     { sl:2,  axle:'HH-80-39',  loco:'27906/4', type:'WAG7', dia:1033, pePH:1.96, pePT:0.72, cePH:2.98, cePT:1.29, approxDia:1033, appxPH:1.96, appxPT:0.72, released:'06.04.2026', msu:0.80,  wdist:1597.24, position:'HR SHOP',    remarks:'' },
     { sl:3,  axle:'HH-01973',  loco:'27906/6', type:'WAG7', dia:1033, pePH:2.74, pePT:0.99, cePH:2.74, cePT:1.34, approxDia:1033, appxPH:2.74, appxPT:0.99, released:'06.04.2026', msu:0.14,  wdist:1596.72, position:'HR SHOP',    remarks:'' },
     { sl:4,  axle:'SHR-301',   loco:'27906/2', type:'WAP7', dia:1034, pePH:3.35, pePT:1.32, cePH:1.24, cePT:0.14, approxDia:1034, appxPH:3.35, appxPT:1.32, released:'06.04.2026', msu:1.38,  wdist:1597.38, position:'HR SHOP',    remarks:'SHARP FLANGE' },
-    { sl:5,  axle:'HH-01786',  loco:'24602/4', type:'WAG7', dia:1036, pePH:1.45, pePT:0.90, cePH:1.31, cePT:0.84, approxDia:1036, appxPH:1.45, appxPT:0.90, released:'14.03.2023', msu:0.38,  wdist:1597.41, position:'SCRAP',      remarks:'' },
+    { sl:5,  axle:'HH-01786',  loco:'24602/4', type:'WAG7', dia:1036, pePH:1.45, pePT:0.90, cePH:1.31, cePT:0.84, approxDia:1036, appxPH:1.45, appxPT:0.90, released:'14.03.2023', msu:0.38,  wdist:1597.41, position:'YARD',      remarks:'' },
     { sl:6,  axle:'AC-1614',   loco:'27654/2', type:'WAG9', dia:1036, pePH:0.55, pePT:0.25, cePH:0.80, cePT:0.16, approxDia:1036, appxPH:0.55, appxPT:0.25, released:'14.02.2025', msu:0.58,  wdist:1597.18, position:'wheel park',  remarks:'' },
     { sl:7,  axle:'HH-01972',  loco:'27906/1', type:'WAG7', dia:1036, pePH:2.37, pePT:0.82, cePH:2.40, cePT:1.38, approxDia:1036, appxPH:2.37, appxPT:0.82, released:'06.04.2026', msu:0.79,  wdist:1596.44, position:'HR SHOP',    remarks:'MEASUREMENT TO BE DONE' },
     { sl:8,  axle:'ELW 2476',  loco:'27906/3', type:'WAG7', dia:1036, pePH:2.67, pePT:0.71, cePH:1.56, cePT:0.69, approxDia:1036, appxPH:2.67, appxPT:0.71, released:'06.04.2026', msu:0.59,  wdist:1596.63, position:'HR SHOP',    remarks:'' },
-    { sl:9,  axle:'HH-57-36',  loco:'27467/1', type:'WAG7', dia:1037, pePH:1.74, pePT:0.40, cePH:1.55, cePT:0.80, approxDia:1037, appxPH:1.74, appxPT:0.40, released:'12.03.2026', msu:1.37,  wdist:1597.32, position:'SCRAP',      remarks:'' },
-    { sl:10, axle:'HH-41-36',  loco:'27490/4', type:'WAG9', dia:1038, pePH:3.98, pePT:1.90, cePH:1.66, cePT:0.55, approxDia:1038, appxPH:3.98, appxPT:1.90, released:'16.03.2026', msu:1.43,  wdist:1597.58, position:'SCRAP',      remarks:'' },
-    { sl:11, axle:'HH-14-39',  loco:'24656/1', type:'WAG7', dia:1053, pePH:1.32, pePT:0.66, cePH:1.14, cePT:0.19, approxDia:1053, appxPH:1.32, appxPT:0.66, released:'17.03.2026', msu:0.63,  wdist:1599.42, position:'SCRAP',      remarks:'BULL GEAR TEETH SUSPECTED DAMAGE' },
+    { sl:9,  axle:'HH-57-36',  loco:'27467/1', type:'WAG7', dia:1037, pePH:1.74, pePT:0.40, cePH:1.55, cePT:0.80, approxDia:1037, appxPH:1.74, appxPT:0.40, released:'12.03.2026', msu:1.37,  wdist:1597.32, position:'YARD',      remarks:'' },
+    { sl:10, axle:'HH-41-36',  loco:'27490/4', type:'WAG9', dia:1038, pePH:3.98, pePT:1.90, cePH:1.66, cePT:0.55, approxDia:1038, appxPH:3.98, appxPT:1.90, released:'16.03.2026', msu:1.43,  wdist:1597.58, position:'YARD',      remarks:'' },
+    { sl:11, axle:'HH-14-39',  loco:'24656/1', type:'WAG7', dia:1053, pePH:1.32, pePT:0.66, cePH:1.14, cePT:0.19, approxDia:1053, appxPH:1.32, appxPT:0.66, released:'17.03.2026', msu:0.63,  wdist:1599.42, position:'YARD',      remarks:'BULL GEAR TEETH SUSPECTED DAMAGE' },
     { sl:12, axle:'HH-90-30',  loco:'27472/4', type:'WAG7', dia:1053, pePH:1.18, pePT:0.06, cePH:1.37, cePT:0.00, approxDia:1053, appxPH:1.18, appxPT:0.06, released:'02.05.2026', msu:null,  wdist:null,    position:'HR SHOP',    remarks:'' },
     { sl:13, axle:'HH-61-83',  loco:'27472/5', type:'WAP7', dia:1053, pePH:1.81, pePT:0.63, cePH:2.03, cePT:0.72, approxDia:1053, appxPH:1.81, appxPT:0.63, released:'02.05.2026', msu:null,  wdist:null,    position:'HR SHOP',    remarks:'' },
     { sl:14, axle:'HH-01418',  loco:'27472/6', type:'WAG7', dia:1053, pePH:2.80, pePT:0.93, cePH:1.88, cePT:0.57, approxDia:1053, appxPH:2.80, appxPT:0.93, released:'02.05.2026', msu:null,  wdist:null,    position:'HR SHOP',    remarks:'' },
@@ -788,7 +789,7 @@
     { sl:16, axle:'HH-53-06',  loco:'27472/2', type:'WAG7', dia:1059, pePH:2.00, pePT:0.55, cePH:1.29, cePT:0.51, approxDia:1059, appxPH:2.00, appxPT:0.55, released:'30.04.2026', msu:0.28,  wdist:1596.55, position:'HR SHOP',    remarks:'' },
     { sl:17, axle:'HH-60-48',  loco:'27472/3', type:'WAG7', dia:1059, pePH:2.57, pePT:0.86, cePH:1.50, cePT:0.35, approxDia:1059, appxPH:2.57, appxPT:0.86, released:'30.04.2026', msu:1.64,  wdist:1597.10, position:'HR SHOP',    remarks:'' },
     { sl:18, axle:'HH-37-75',  loco:'27632/1', type:'WAP7', dia:1064, pePH:1.31, pePT:0.55, cePH:1.29, cePT:0.66, approxDia:1064, appxPH:1.31, appxPT:0.55, released:'06.03.2026', msu:0.74,  wdist:1597.38, position:'wheel park',  remarks:'' },
-    { sl:19, axle:'SHH-129',   loco:'27632/4', type:'WAG9', dia:1068, pePH:1.42, pePT:0.70, cePH:2.80, cePT:1.60, approxDia:1068, appxPH:1.42, appxPT:0.70, released:'24.03.2026', msu:0.16,  wdist:1597.30, position:'SCRAP',      remarks:'' },
+    { sl:19, axle:'SHH-129',   loco:'27632/4', type:'WAG9', dia:1068, pePH:1.42, pePT:0.70, cePH:2.80, cePT:1.60, approxDia:1068, appxPH:1.42, appxPT:0.70, released:'24.03.2026', msu:0.16,  wdist:1597.30, position:'YARD',      remarks:'' },
     { sl:20, axle:'HH-48-35',  loco:'GOC/TPJ', type:'WAG9', dia:1093, pePH:0.00, pePT:0.00, cePH:0.00, cePT:0.00, approxDia:1093, appxPH:0.00, appxPT:0.00, released:'20.03.2026', msu:0.10,  wdist:1595.70, position:'HR SHOP',    remarks:'' },
     { sl:21, axle:'HH 52-91',  loco:'27471/4', type:'WAG7', dia:1011, pePH:null, pePT:null, cePH:null, cePT:null,  approxDia:1011, appxPH:null, appxPT:null, released:'',           msu:null,  wdist:null,    position:'wheel shop',  remarks:'' },
   ];
@@ -842,9 +843,12 @@
       const pePH = parseFloat(document.getElementById('profilePE1').value);
       const cePH = parseFloat(document.getElementById('profileCE1').value);
 
-      const limits      = JSON.parse(localStorage.getItem('rt_wear_limits') || '{}');
-      const afterRoot   = limits.afterRootWear   !== undefined ? parseFloat(limits.afterRootWear)   : 1.5;
-      const afterFlange = limits.afterFlangeWear !== undefined ? parseFloat(limits.afterFlangeWear) : 1.2;
+      const _wlAll  = JSON.parse(localStorage.getItem('rt_wear_limits') || '{}');
+      const _type   = document.getElementById('locoType')?.value || 'WAG7';
+      const _wlDefs = { afterRoot: 1.5, afterFlange: 1.2 };
+      const limits  = (_wlAll[_type] && typeof _wlAll[_type] === 'object') ? _wlAll[_type] : {};
+      const afterRoot   = limits.afterRoot   !== undefined ? parseFloat(limits.afterRoot)   : _wlDefs.afterRoot;
+      const afterFlange = limits.afterFlange !== undefined ? parseFloat(limits.afterFlange) : _wlDefs.afterFlange;
 
       // Diameter: reduce by 2× the excess of worst root height over after-WT limit
       const worstH  = Math.max(isNaN(pePH) ? 0 : pePH, isNaN(cePH) ? 0 : cePH);
@@ -909,7 +913,7 @@
   // ── Per-wheel activity log ──
   const WHEEL_ACTIVITIES = {
     1:  [
-      { action:'status',   date:'06.04.2026', time:'07:50', user:'A. Kumar',  desc:'Wheel condemned – diameter 1028mm below 1030mm limit.',       field:'Wheel Position', oldVal:'Wheel Park',   newVal:'Scrap' },
+      { action:'status',   date:'06.04.2026', time:'07:50', user:'A. Kumar',  desc:'Wheel condemned – diameter 1028mm below 1030mm limit.',       field:'Wheel Position', oldVal:'Wheel Park',   newVal:'Yard' },
       { action:'updated',  date:'06.04.2026', time:'07:48', user:'A. Kumar',  desc:'Final diameter recorded after second measurement.',            field:'Wheel Diameter',  oldVal:'1029',         newVal:'1028' },
       { action:'created',  date:'06.04.2026', time:'07:45', user:'A. Kumar',  desc:'New wheel asset record created.',                              field:'',                oldVal:'',             newVal:'' },
     ],
@@ -927,7 +931,7 @@
       { action:'created',  date:'06.04.2026', time:'09:20', user:'R. Sharma', desc:'New wheel asset record created.',                              field:'',                oldVal:'',             newVal:'' },
     ],
     5:  [
-      { action:'status',   date:'14.03.2023', time:'10:05', user:'A. Kumar',  desc:'Condemned – diameter at lower limit with repeated wear history.',field:'Wheel Position', oldVal:'Wheel Park',   newVal:'Scrap' },
+      { action:'status',   date:'14.03.2023', time:'10:05', user:'A. Kumar',  desc:'Condemned – diameter at lower limit with repeated wear history.',field:'Wheel Position', oldVal:'Wheel Park',   newVal:'Yard' },
       { action:'updated',  date:'14.03.2023', time:'10:00', user:'A. Kumar',  desc:'Wheel diameter recorded at condemn boundary.',                 field:'Wheel Diameter',  oldVal:'1037',         newVal:'1036' },
       { action:'created',  date:'14.03.2023', time:'09:50', user:'A. Kumar',  desc:'New wheel asset record created.',                              field:'',                oldVal:'',             newVal:'' },
     ],
@@ -945,17 +949,17 @@
       { action:'updated',  date:'06.04.2026', time:'14:05', user:'R. Sharma', desc:'Profile CE height corrected after re-gauge.',                  field:'Profile CE (h)',  oldVal:'2.74',         newVal:'2.67' },
     ],
     9:  [
-      { action:'status',   date:'12.03.2026', time:'10:05', user:'S. Pillai', desc:'Condemned – root wear exceeds 1.5mm post-WT limit.',            field:'Wheel Position',  oldVal:'Wheel Park',   newVal:'Scrap' },
+      { action:'status',   date:'12.03.2026', time:'10:05', user:'S. Pillai', desc:'Condemned – root wear exceeds 1.5mm post-WT limit.',            field:'Wheel Position',  oldVal:'Wheel Park',   newVal:'Yard' },
       { action:'updated',  date:'12.03.2026', time:'09:45', user:'S. Pillai', desc:'Profile PE height corrected after second measurement.',        field:'Profile PE (h)',  oldVal:'1.69',         newVal:'1.74' },
       { action:'created',  date:'12.03.2026', time:'09:00', user:'S. Pillai', desc:'New wheel asset record created.',                              field:'',                oldVal:'',             newVal:'' },
     ],
     10: [
-      { action:'status',   date:'16.03.2026', time:'10:20', user:'A. Kumar',  desc:'Profile PE 3.98 far beyond condemn limit – condemned.',         field:'Wheel Position',  oldVal:'Wheel Shop',   newVal:'Scrap' },
+      { action:'status',   date:'16.03.2026', time:'10:20', user:'A. Kumar',  desc:'Profile PE 3.98 far beyond condemn limit – condemned.',         field:'Wheel Position',  oldVal:'Wheel Shop',   newVal:'Yard' },
       { action:'created',  date:'16.03.2026', time:'10:00', user:'A. Kumar',  desc:'New wheel asset record created.',                              field:'',                oldVal:'',             newVal:'' },
     ],
     11: [
       { action:'updated',  date:'17.03.2026', time:'12:00', user:'D. Nair',   desc:'UT confirmed crack – remark updated with test result.',         field:'Remarks',         oldVal:'BULL GEAR',    newVal:'BULL GEAR – CRACK CONFIRMED' },
-      { action:'status',   date:'17.03.2026', time:'10:30', user:'D. Nair',   desc:'Condemned after ultrasonic crack confirmation.',                field:'Wheel Position',  oldVal:'Wheel Shop',   newVal:'Scrap' },
+      { action:'status',   date:'17.03.2026', time:'10:30', user:'D. Nair',   desc:'Condemned after ultrasonic crack confirmation.',                field:'Wheel Position',  oldVal:'Wheel Shop',   newVal:'Yard' },
       { action:'photo',    date:'17.03.2026', time:'09:00', user:'R. Sharma', desc:'Crack evidence photos uploaded for record.',                    field:'Photos',          oldVal:'1 photo',      newVal:'4 photos' },
       { action:'created',  date:'17.03.2026', time:'08:30', user:'R. Sharma', desc:'New wheel asset record created.',                              field:'',                oldVal:'',             newVal:'' },
     ],
@@ -983,7 +987,7 @@
       { action:'created',  date:'06.03.2026', time:'09:45', user:'S. Pillai', desc:'New wheel asset record created.',                              field:'',                oldVal:'',             newVal:'' },
     ],
     18: [
-      { action:'status',   date:'24.03.2026', time:'11:30', user:'R. Sharma', desc:'Condemned based on wear profile analysis.',                    field:'Wheel Position',  oldVal:'Wheel Park',   newVal:'Scrap' },
+      { action:'status',   date:'24.03.2026', time:'11:30', user:'R. Sharma', desc:'Condemned based on wear profile analysis.',                    field:'Wheel Position',  oldVal:'Wheel Park',   newVal:'Yard' },
       { action:'created',  date:'24.03.2026', time:'10:00', user:'R. Sharma', desc:'New wheel asset record created.',                              field:'',                oldVal:'',             newVal:'' },
     ],
     19: [

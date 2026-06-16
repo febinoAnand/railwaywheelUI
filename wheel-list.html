@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wheel List — RailTrack QR</title>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -309,6 +311,46 @@
     }
     .filter-tag button:hover { color: var(--danger); }
 
+    /* ── Position Summary widget ── */
+    .widget {
+      background: var(--white); border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(10,42,74,.07);
+      overflow: hidden; margin-bottom: 22px;
+    }
+    .widget-head {
+      padding: 14px 20px; border-bottom: 1px solid #e8eef5;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .widget-head h2 {
+      font-size: 13.5px; font-weight: 700; color: var(--rail-blue);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .widget-body { padding: 0; }
+    .wl-badge {
+      background: #e8f0f8; color: var(--rail-mid);
+      font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+    }
+    .pos-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .pos-table th {
+      background: var(--rail-blue); color: var(--white);
+      padding: 9px 14px; font-weight: 600; letter-spacing: .3px; text-align: center;
+    }
+    .pos-table th:first-child { text-align: left; }
+    .pos-table td { padding: 9px 14px; border-bottom: 1px solid #edf2f7; text-align: center; }
+    .pos-table td:first-child { text-align: left; font-weight: 600; }
+    .pos-table tr:nth-child(even) td { background: #f8fafc; }
+    .pos-table tr.total-row td { background: #e8f0f9 !important; font-weight: 700; color: var(--rail-blue); font-size: 14px; }
+    .pos-table tr:hover td { background: #edf5ff !important; }
+    .pos-table .wap5 { color: #0f3d6e; font-weight: 700; }
+    .pos-table thead th.wap5 { color: #93c5fd; }
+    .pos-table .wag7 { color: #276749; font-weight: 700; }
+    .pos-table .wap7 { color: #6b46c1; font-weight: 700; }
+    .pos-table .wag9 { color: #92400e; font-weight: 700; }
+    .pos-table thead th.wag9 { color: #fcd34d; }
+    .pos-table .eled { background: #fffbeb !important; }
+    .pos-table .zero { color: #b0c0cc !important; font-weight: 400 !important; }
+    .chart-wrap { position: relative; height: 220px; }
+
     @media (max-width: 760px) {
       :root { --sidebar-w: 0px; }
       .sidebar { display: none; }
@@ -361,7 +403,7 @@
         Reports
       </a>
       <a class="nav-item" href="settings.html">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/></svg>
         Settings
       </a>
       <div class="nav-section">User Management</div>
@@ -400,6 +442,94 @@
 
     <div class="page">
 
+      <!-- Wheel Position Summary — two widgets side by side -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:22px;align-items:stretch">
+
+        <!-- Left: Position Table -->
+        <div class="widget" style="margin-bottom:0">
+          <div class="widget-head">
+            <h2>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>
+              Wheel Position Summary
+            </h2>
+            <span class="wl-badge">As on 13/05/26</span>
+          </div>
+          <div class="widget-body">
+            <table class="pos-table">
+              <thead>
+                <tr>
+                  <th>Location</th>
+                  <th class="wap5">WAP 5</th>
+                  <th class="wag7" style="color:#a5f3c1">WAG 7</th>
+                  <th class="wap7" style="color:#d8b4fe">WAP 7</th>
+                  <th class="wag9">WAG 9</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>LW / PER</td>
+                  <td class="wap5">1</td>
+                  <td class="wag7 zero">0</td>
+                  <td class="wap7">5</td>
+                  <td class="wag9 zero">0</td>
+                  <td>6</td>
+                </tr>
+                <tr>
+                  <td>ELS/ED (Loco Account)</td>
+                  <td class="wap5 zero">0</td>
+                  <td class="wag7 zero">0</td>
+                  <td class="wap7 zero">0</td>
+                  <td class="wag9 zero">0</td>
+                  <td class="zero">0</td>
+                </tr>
+                <tr>
+                  <td>GOC</td>
+                  <td class="wap5 zero">0</td>
+                  <td class="wag7">16</td>
+                  <td class="wap7 zero">0</td>
+                  <td class="wag9 zero">0</td>
+                  <td>16</td>
+                </tr>
+                <tr class="eled">
+                  <td>ELS / ED</td>
+                  <td class="wap5">1</td>
+                  <td class="wag7">21</td>
+                  <td class="wap7">73</td>
+                  <td class="wag9">4</td>
+                  <td>99</td>
+                </tr>
+                <tr class="total-row">
+                  <td>TOTAL</td>
+                  <td>2</td>
+                  <td>37</td>
+                  <td>78</td>
+                  <td>4</td>
+                  <td>121</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right: Distribution Chart -->
+        <div class="widget" style="margin-bottom:0">
+          <div class="widget-head">
+            <h2>
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/></svg>
+              Loco Type Distribution by Location
+            </h2>
+            <span class="wl-badge">Bar Chart</span>
+          </div>
+          <div class="widget-body" style="padding:20px;display:flex;flex-direction:column;">
+            <div class="chart-wrap" style="flex:1;height:auto;min-height:200px;">
+              <canvas id="wlPosChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
       <!-- Toolbar -->
       <div class="toolbar">
         <!-- Search -->
@@ -416,7 +546,7 @@
             <select id="filterPosition" onchange="applyFilters()">
               <option value="">All Positions</option>
               <option value="HR SHOP">HR Shop</option>
-              <option value="SCRAP">Scrap</option>
+              <option value="YARD">Yard</option>
               <option value="wheel park">Wheel Park</option>
               <option value="wheel shop">Wheel Shop</option>
             </select>
@@ -479,7 +609,7 @@
       <div class="summary-row">
         <div class="chip chip-total" id="chipTotal">— Total</div>
         <div class="chip chip-hrshop" id="chipHR">— HR Shop</div>
-        <div class="chip chip-scrap"  id="chipScrap">— Scrap</div>
+        <div class="chip chip-scrap"  id="chipScrap">— Yard</div>
         <div class="chip chip-wpark"  id="chipWPark">— Wheel Park</div>
         <div class="chip chip-wshop"  id="chipWShop">— Wheel Shop</div>
         <div class="result-count" id="resultCount"></div>
@@ -537,17 +667,17 @@
   <script>
   // ── Data ──
   const ALL_WHEELS = [
-    { sl:1,  axle:'HH 34-63',  loco:'27497/5', type:'WAG7', dia:1028, pePH:1.37, pePT:0.72, cePH:1.65, cePT:0.47, approxDia:1028, appxPH:1.37, appxPT:0.72, released:'',           msu:1.37, wdist:1596.80, position:'SCRAP',      remarks:'' },
+    { sl:1,  axle:'HH 34-63',  loco:'27497/5', type:'WAG7', dia:1028, pePH:1.37, pePT:0.72, cePH:1.65, cePT:0.47, approxDia:1028, appxPH:1.37, appxPT:0.72, released:'',           msu:1.37, wdist:1596.80, position:'YARD',      remarks:'' },
     { sl:2,  axle:'HH-80-39',  loco:'27906/4', type:'WAG7', dia:1033, pePH:1.96, pePT:0.72, cePH:2.98, cePT:1.29, approxDia:1033, appxPH:1.96, appxPT:0.72, released:'06.04.2026', msu:0.80, wdist:1597.24, position:'HR SHOP',    remarks:'' },
     { sl:3,  axle:'HH-01973',  loco:'27906/6', type:'WAG7', dia:1033, pePH:2.74, pePT:0.99, cePH:2.74, cePT:1.34, approxDia:1033, appxPH:2.74, appxPT:0.99, released:'06.04.2026', msu:0.14, wdist:1596.72, position:'HR SHOP',    remarks:'' },
     { sl:4,  axle:'SHR-301',   loco:'27906/2', type:'WAP7', dia:1034, pePH:3.35, pePT:1.32, cePH:1.24, cePT:0.14, approxDia:1034, appxPH:3.35, appxPT:1.32, released:'06.04.2026', msu:1.38, wdist:1597.38, position:'HR SHOP',    remarks:'SHARP FLANGE' },
-    { sl:5,  axle:'HH-01786',  loco:'24602/4', type:'WAG7', dia:1036, pePH:1.45, pePT:0.90, cePH:1.31, cePT:0.84, approxDia:1036, appxPH:1.45, appxPT:0.90, released:'14.03.2023', msu:0.38, wdist:1597.41, position:'SCRAP',      remarks:'' },
+    { sl:5,  axle:'HH-01786',  loco:'24602/4', type:'WAG7', dia:1036, pePH:1.45, pePT:0.90, cePH:1.31, cePT:0.84, approxDia:1036, appxPH:1.45, appxPT:0.90, released:'14.03.2023', msu:0.38, wdist:1597.41, position:'YARD',      remarks:'' },
     { sl:6,  axle:'AC-1614',   loco:'27654/2', type:'WAG9', dia:1036, pePH:0.55, pePT:0.25, cePH:0.80, cePT:0.16, approxDia:1036, appxPH:0.55, appxPT:0.25, released:'14.02.2025', msu:0.58, wdist:1597.18, position:'wheel park',  remarks:'' },
     { sl:7,  axle:'HH-01972',  loco:'27906/1', type:'WAG7', dia:1036, pePH:2.37, pePT:0.82, cePH:2.40, cePT:1.38, approxDia:1036, appxPH:2.37, appxPT:0.82, released:'06.04.2026', msu:0.79, wdist:1596.44, position:'HR SHOP',    remarks:'MEASUREMENT TO BE DONE' },
     { sl:8,  axle:'ELW 2476',  loco:'27906/3', type:'WAG7', dia:1036, pePH:2.67, pePT:0.71, cePH:1.56, cePT:0.69, approxDia:1036, appxPH:2.67, appxPT:0.71, released:'06.04.2026', msu:0.59, wdist:1596.63, position:'HR SHOP',    remarks:'' },
-    { sl:9,  axle:'HH-57-36',  loco:'27467/1', type:'WAG7', dia:1037, pePH:1.74, pePT:0.40, cePH:1.55, cePT:0.80, approxDia:1037, appxPH:1.74, appxPT:0.40, released:'12.03.2026', msu:1.37, wdist:1597.32, position:'SCRAP',      remarks:'' },
-    { sl:10, axle:'HH-41-36',  loco:'27490/4', type:'WAG9', dia:1038, pePH:3.98, pePT:1.90, cePH:1.66, cePT:0.55, approxDia:1038, appxPH:3.98, appxPT:1.90, released:'16.03.2026', msu:1.43, wdist:1597.58, position:'SCRAP',      remarks:'' },
-    { sl:11, axle:'HH-14-39',  loco:'24656/1', type:'WAG7', dia:1053, pePH:1.32, pePT:0.66, cePH:1.14, cePT:0.19, approxDia:1053, appxPH:1.32, appxPT:0.66, released:'17.03.2026', msu:0.63, wdist:1599.42, position:'SCRAP',      remarks:'BULL GEAR TEETH SUSPECTED DAMAGE' },
+    { sl:9,  axle:'HH-57-36',  loco:'27467/1', type:'WAG7', dia:1037, pePH:1.74, pePT:0.40, cePH:1.55, cePT:0.80, approxDia:1037, appxPH:1.74, appxPT:0.40, released:'12.03.2026', msu:1.37, wdist:1597.32, position:'YARD',      remarks:'' },
+    { sl:10, axle:'HH-41-36',  loco:'27490/4', type:'WAG9', dia:1038, pePH:3.98, pePT:1.90, cePH:1.66, cePT:0.55, approxDia:1038, appxPH:3.98, appxPT:1.90, released:'16.03.2026', msu:1.43, wdist:1597.58, position:'YARD',      remarks:'' },
+    { sl:11, axle:'HH-14-39',  loco:'24656/1', type:'WAG7', dia:1053, pePH:1.32, pePT:0.66, cePH:1.14, cePT:0.19, approxDia:1053, appxPH:1.32, appxPT:0.66, released:'17.03.2026', msu:0.63, wdist:1599.42, position:'YARD',      remarks:'BULL GEAR TEETH SUSPECTED DAMAGE' },
     { sl:12, axle:'HH-90-30',  loco:'27472/4', type:'WAG7', dia:1053, pePH:1.18, pePT:0.06, cePH:1.37, cePT:0.00, approxDia:1053, appxPH:1.18, appxPT:0.06, released:'02.05.2026', msu:null, wdist:null,    position:'HR SHOP',    remarks:'' },
     { sl:13, axle:'HH-61-83',  loco:'27472/5', type:'WAP7', dia:1053, pePH:1.81, pePT:0.63, cePH:2.03, cePT:0.72, approxDia:1053, appxPH:1.81, appxPT:0.63, released:'02.05.2026', msu:null, wdist:null,    position:'HR SHOP',    remarks:'' },
     { sl:14, axle:'HH-01418',  loco:'27472/6', type:'WAG7', dia:1053, pePH:2.80, pePT:0.93, cePH:1.88, cePT:0.57, approxDia:1053, appxPH:2.80, appxPT:0.93, released:'02.05.2026', msu:null, wdist:null,    position:'HR SHOP',    remarks:'' },
@@ -555,7 +685,7 @@
     { sl:16, axle:'HH-53-06',  loco:'27472/2', type:'WAG7', dia:1059, pePH:2.00, pePT:0.55, cePH:1.29, cePT:0.51, approxDia:1059, appxPH:2.00, appxPT:0.55, released:'30.04.2026', msu:0.28, wdist:1596.55, position:'HR SHOP',    remarks:'' },
     { sl:17, axle:'HH-60-48',  loco:'27472/3', type:'WAG7', dia:1059, pePH:2.57, pePT:0.86, cePH:1.50, cePT:0.35, approxDia:1059, appxPH:2.57, appxPT:0.86, released:'30.04.2026', msu:1.64, wdist:1597.10, position:'HR SHOP',    remarks:'' },
     { sl:18, axle:'HH-37-75',  loco:'27632/1', type:'WAP7', dia:1064, pePH:1.31, pePT:0.55, cePH:1.29, cePT:0.66, approxDia:1064, appxPH:1.31, appxPT:0.55, released:'06.03.2026', msu:0.74, wdist:1597.38, position:'wheel park',  remarks:'' },
-    { sl:19, axle:'SHH-129',   loco:'27632/4', type:'WAG9', dia:1068, pePH:1.42, pePT:0.70, cePH:2.80, cePT:1.60, approxDia:1068, appxPH:1.42, appxPT:0.70, released:'24.03.2026', msu:0.16, wdist:1597.30, position:'SCRAP',      remarks:'' },
+    { sl:19, axle:'SHH-129',   loco:'27632/4', type:'WAG9', dia:1068, pePH:1.42, pePT:0.70, cePH:2.80, cePT:1.60, approxDia:1068, appxPH:1.42, appxPT:0.70, released:'24.03.2026', msu:0.16, wdist:1597.30, position:'YARD',      remarks:'' },
     { sl:20, axle:'HH-48-35',  loco:'GOC/TPJ', type:'WAG9', dia:1093, pePH:0.00, pePT:0.00, cePH:0.00, cePT:0.00, approxDia:1093, appxPH:0.00, appxPT:0.00, released:'20.03.2026', msu:0.10, wdist:1595.70, position:'HR SHOP',    remarks:'' },
     { sl:21, axle:'HH 52-91',  loco:'27471/4', type:'WAG7', dia:1011, pePH:null, pePT:null, cePH:null, cePT:null,  approxDia:1011, appxPH:null, appxPT:null, released:'',           msu:null, wdist:null,    position:'wheel shop',  remarks:'' },
   ];
@@ -717,7 +847,7 @@
 
   function rowHTML(w) {
     const diaClass  = w.dia < 1030 ? 'dia-crit' : w.dia <= 1040 ? 'dia-warn' : w.dia >= 1071 ? 'dia-high' : 'dia-good';
-    const posCls    = { 'HR SHOP':'pos-hrshop', 'SCRAP':'pos-scrap', 'wheel park':'pos-wpark', 'wheel shop':'pos-wshop' }[w.position] || 'pos-hrshop';
+    const posCls    = { 'HR SHOP':'pos-hrshop', 'YARD':'pos-scrap', 'wheel park':'pos-wpark', 'wheel shop':'pos-wshop' }[w.position] || 'pos-hrshop';
     const _msuLimits  = JSON.parse(localStorage.getItem('rt_msu_limits') || '{}');
     const _msuDefault = { WAG7: 1.5, WAP7: 1.0, WAG9: 1.0 };
     const _msuLimit   = _msuLimits['msu' + w.type] !== undefined ? _msuLimits['msu' + w.type] : (_msuDefault[w.type] ?? 1.5);
@@ -764,7 +894,7 @@
     const src = filtered;
     document.getElementById('chipTotal').textContent  = `${src.length} Total`;
     document.getElementById('chipHR').textContent     = `${src.filter(w=>w.position==='HR SHOP').length} HR Shop`;
-    document.getElementById('chipScrap').textContent  = `${src.filter(w=>w.position==='SCRAP').length} Scrap`;
+    document.getElementById('chipScrap').textContent  = `${src.filter(w=>w.position==='YARD').length} Yard`;
     document.getElementById('chipWPark').textContent  = `${src.filter(w=>w.position==='wheel park').length} Wheel Park`;
     document.getElementById('chipWShop').textContent  = `${src.filter(w=>w.position==='wheel shop').length} Wheel Shop`;
   }
@@ -1014,6 +1144,42 @@
       buildLocoFilter();
       applyFilters();
     }
+
+    // ── Wheel Position Summary chart ──
+    (function() {
+      Chart.register(ChartDataLabels);
+      Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
+      const gridColor = 'rgba(0,0,0,.06)';
+      new Chart(document.getElementById('wlPosChart'), {
+        type: 'bar',
+        data: {
+          labels: ['LW/PER', 'ELS/ED (Loco)', 'GOC', 'ELS/ED'],
+          datasets: [
+            { label: 'WAP 5', data: [1, 0, 0, 1],  backgroundColor: '#3182ce', borderRadius: 4 },
+            { label: 'WAG 7', data: [0, 0, 16, 21], backgroundColor: '#38a169', borderRadius: 4 },
+            { label: 'WAP 7', data: [5, 0, 0, 73],  backgroundColor: '#805ad5', borderRadius: 4 },
+            { label: 'WAG 9', data: [0, 0, 0, 4],   backgroundColor: '#d97706', borderRadius: 4 },
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          layout: { padding: { top: 18 } },
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 10, padding: 14, font: { size: 11 } } },
+            datalabels: {
+              anchor: 'end', align: 'top', offset: 2,
+              font: { size: 10, weight: '700' },
+              color: '#1a2b3c',
+              display: ctx => ctx.dataset.data[ctx.dataIndex] > 0,
+            },
+          },
+          scales: {
+            x: { grid: { color: gridColor }, ticks: { font: { size: 11 } } },
+            y: { grid: { color: gridColor }, beginAtZero: true, ticks: { stepSize: 10 } }
+          }
+        }
+      });
+    })();
 
     function downloadTemplate() {
       const headers = ['Axle No','Loco No','Type','Wheel Dia','PE P/H','PE P/T','CE P/H','CE P/T','Approx Dia','Appx P/H','Appx P/T','Released Date','MSU Play','Wheel Distance','Position','Remarks'];

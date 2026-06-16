@@ -198,6 +198,23 @@
       border-left: 1px solid #f0b8b8;
     }
 
+    /* ── Wear type tabs ── */
+    .wear-type-tabs {
+      display: flex;
+      border-bottom: 2px solid #e8eef5;
+      margin-bottom: 20px;
+    }
+    .wear-type-tab {
+      flex: 1; padding: 9px 6px; font-size: 13px; font-weight: 600;
+      border: none; background: transparent; color: var(--text-muted);
+      cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px;
+      transition: color .15s, border-color .15s;
+    }
+    .wear-type-tab:hover { color: var(--rail-blue); }
+    .wear-type-tab.active { color: var(--rail-mid); border-bottom-color: var(--rail-mid); }
+    .wear-type-panel { display: none; }
+    .wear-type-panel.active { display: block; }
+
     /* ── Action bar ── */
     .action-bar {
       display: flex;
@@ -359,67 +376,101 @@
             Values are stored in your browser and apply to wear status indicators across all wheel records. All measurements are in millimetres (mm).
           </div>
 
-          <div class="wear-tables">
+          <!-- Loco type tabs -->
+          <div class="wear-type-tabs">
+            <button class="wear-type-tab active" data-type="WAP5" onclick="switchWearTab('WAP5')">WAP 5</button>
+            <button class="wear-type-tab" data-type="WAG7" onclick="switchWearTab('WAG7')">WAG 7</button>
+            <button class="wear-type-tab" data-type="WAP7" onclick="switchWearTab('WAP7')">WAP 7</button>
+            <button class="wear-type-tab" data-type="WAG9" onclick="switchWearTab('WAG9')">WAG 9</button>
+          </div>
 
-            <!-- After WT -->
-            <div class="wear-table-wrap">
-              <table class="wear-table">
-                <thead>
-                  <tr><th colspan="2">WHEEL WEAR LIMIT AFTER WT</th></tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="lbl-root">ROOT WEAR</td>
-                    <td class="limit-input-cell">
-                      <div class="limit-input-wrap">
-                        <input type="number" class="limit-input" id="afterRootWear" value="1.5" min="0" max="99" step="0.1" />
-                        <span class="unit-tag">mm</span>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="lbl-flange">FLANGE WEAR</td>
-                    <td class="limit-input-cell">
-                      <div class="limit-input-wrap">
-                        <input type="number" class="limit-input" id="afterFlangeWear" value="1.2" min="0" max="99" step="0.1" />
-                        <span class="unit-tag">mm</span>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+          <!-- WAP 5 -->
+          <div class="wear-type-panel active" id="wearPanel_WAP5">
+            <div class="wear-tables">
+              <div class="wear-table-wrap">
+                <table class="wear-table"><thead><tr><th colspan="2">WEAR LIMIT AFTER WT</th></tr></thead>
+                  <tbody>
+                    <tr><td class="lbl-root">ROOT WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="afterRoot_WAP5" value="1.5" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                    <tr><td class="lbl-flange">FLANGE WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="afterFlange_WAP5" value="1.2" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="wear-table-wrap">
+                <table class="wear-table"><thead><tr><th colspan="2">WEAR LIMIT BEFORE WT</th></tr></thead>
+                  <tbody>
+                    <tr><td class="lbl-root">ROOT WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="beforeRoot_WAP5" value="4.0" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                    <tr><td class="lbl-flange">FLANGE WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="beforeFlange_WAP5" value="2.0" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
+          </div>
 
-            <!-- Before WT -->
-            <div class="wear-table-wrap">
-              <table class="wear-table">
-                <thead>
-                  <tr><th colspan="2">WHEEL WEAR LIMIT BEFORE WT</th></tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="lbl-root">ROOT WEAR</td>
-                    <td class="limit-input-cell">
-                      <div class="limit-input-wrap">
-                        <input type="number" class="limit-input" id="beforeRootWear" value="4.0" min="0" max="99" step="0.1" />
-                        <span class="unit-tag">mm</span>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="lbl-flange">FLANGE WEAR</td>
-                    <td class="limit-input-cell">
-                      <div class="limit-input-wrap">
-                        <input type="number" class="limit-input" id="beforeFlangeWear" value="2.0" min="0" max="99" step="0.1" />
-                        <span class="unit-tag">mm</span>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+          <!-- WAG 7 -->
+          <div class="wear-type-panel" id="wearPanel_WAG7">
+            <div class="wear-tables">
+              <div class="wear-table-wrap">
+                <table class="wear-table"><thead><tr><th colspan="2">WEAR LIMIT AFTER WT</th></tr></thead>
+                  <tbody>
+                    <tr><td class="lbl-root">ROOT WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="afterRoot_WAG7" value="1.5" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                    <tr><td class="lbl-flange">FLANGE WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="afterFlange_WAG7" value="1.2" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="wear-table-wrap">
+                <table class="wear-table"><thead><tr><th colspan="2">WEAR LIMIT BEFORE WT</th></tr></thead>
+                  <tbody>
+                    <tr><td class="lbl-root">ROOT WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="beforeRoot_WAG7" value="4.0" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                    <tr><td class="lbl-flange">FLANGE WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="beforeFlange_WAG7" value="2.0" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
+          </div>
 
-          </div><!-- /wear-tables -->
+          <!-- WAP 7 -->
+          <div class="wear-type-panel" id="wearPanel_WAP7">
+            <div class="wear-tables">
+              <div class="wear-table-wrap">
+                <table class="wear-table"><thead><tr><th colspan="2">WEAR LIMIT AFTER WT</th></tr></thead>
+                  <tbody>
+                    <tr><td class="lbl-root">ROOT WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="afterRoot_WAP7" value="1.5" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                    <tr><td class="lbl-flange">FLANGE WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="afterFlange_WAP7" value="1.2" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="wear-table-wrap">
+                <table class="wear-table"><thead><tr><th colspan="2">WEAR LIMIT BEFORE WT</th></tr></thead>
+                  <tbody>
+                    <tr><td class="lbl-root">ROOT WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="beforeRoot_WAP7" value="4.0" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                    <tr><td class="lbl-flange">FLANGE WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="beforeFlange_WAP7" value="2.0" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- WAG 9 -->
+          <div class="wear-type-panel" id="wearPanel_WAG9">
+            <div class="wear-tables">
+              <div class="wear-table-wrap">
+                <table class="wear-table"><thead><tr><th colspan="2">WEAR LIMIT AFTER WT</th></tr></thead>
+                  <tbody>
+                    <tr><td class="lbl-root">ROOT WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="afterRoot_WAG9" value="1.5" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                    <tr><td class="lbl-flange">FLANGE WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="afterFlange_WAG9" value="1.2" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="wear-table-wrap">
+                <table class="wear-table"><thead><tr><th colspan="2">WEAR LIMIT BEFORE WT</th></tr></thead>
+                  <tbody>
+                    <tr><td class="lbl-root">ROOT WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="beforeRoot_WAG9" value="4.0" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                    <tr><td class="lbl-flange">FLANGE WEAR</td><td class="limit-input-cell"><div class="limit-input-wrap"><input type="number" class="limit-input" id="beforeFlange_WAG9" value="2.0" min="0" max="99" step="0.1"/><span class="unit-tag">mm</span></div></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
 
           <div class="action-bar">
             <button class="btn btn-ghost" onclick="resetDefaults()">
@@ -503,6 +554,15 @@
               </thead>
               <tbody>
                 <tr>
+                  <td class="lbl-flange" style="font-size:14px;letter-spacing:.5px">WAP 5</td>
+                  <td class="limit-input-cell">
+                    <div class="limit-input-wrap">
+                      <input type="number" class="limit-input" id="msuWAP5" value="1.0" min="0" max="99" step="0.1" />
+                      <span class="unit-tag">mm</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
                   <td class="lbl-root" style="font-size:14px;letter-spacing:.5px">WAG 7</td>
                   <td class="limit-input-cell">
                     <div class="limit-input-wrap">
@@ -557,10 +617,16 @@
   </div>
 
   <script>
-    const WEAR_DEFAULTS  = { afterRootWear: 1.5, afterFlangeWear: 1.2, beforeRootWear: 4.0, beforeFlangeWear: 2.0 };
-    const WEAR_KEYS  = Object.keys(WEAR_DEFAULTS);
+    const WEAR_TYPES   = ['WAP5','WAG7','WAP7','WAG9'];
+    const WEAR_FIELDS  = ['afterRoot','afterFlange','beforeRoot','beforeFlange'];
+    const WEAR_DEFAULTS = {
+      WAP5: { afterRoot: 1.5, afterFlange: 1.2, beforeRoot: 4.0, beforeFlange: 2.0 },
+      WAG7: { afterRoot: 1.5, afterFlange: 1.2, beforeRoot: 4.0, beforeFlange: 2.0 },
+      WAP7: { afterRoot: 1.5, afterFlange: 1.2, beforeRoot: 4.0, beforeFlange: 2.0 },
+      WAG9: { afterRoot: 1.5, afterFlange: 1.2, beforeRoot: 4.0, beforeFlange: 2.0 },
+    };
 
-    const MSU_DEFAULTS  = { msuWAG7: 1.5, msuWAP7: 1.0, msuWAG9: 1.0 };
+    const MSU_DEFAULTS  = { msuWAP5: 1.0, msuWAG7: 1.5, msuWAP7: 1.0, msuWAG9: 1.0 };
     const MSU_KEYS  = Object.keys(MSU_DEFAULTS);
 
     const WDIST_DEFAULTS = { wdistMin: 1595.5, wdistMax: 1599.0 };
@@ -574,9 +640,11 @@
       document.getElementById('topAvatar').textContent = (user.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase();
 
       const savedWear = JSON.parse(localStorage.getItem('rt_wear_limits') || '{}');
-      WEAR_KEYS.forEach(k => {
-        const el = document.getElementById(k);
-        if (el) el.value = savedWear[k] !== undefined ? savedWear[k] : WEAR_DEFAULTS[k];
+      WEAR_TYPES.forEach(type => {
+        WEAR_FIELDS.forEach(field => {
+          const el = document.getElementById(`${field}_${type}`);
+          if (el) el.value = (savedWear[type] && savedWear[type][field] !== undefined) ? savedWear[type][field] : WEAR_DEFAULTS[type][field];
+        });
       });
 
       const savedMsu = JSON.parse(localStorage.getItem('rt_msu_limits') || '{}');
@@ -592,13 +660,21 @@
       });
     })();
 
+    function switchWearTab(type) {
+      document.querySelectorAll('.wear-type-tab').forEach(t => t.classList.toggle('active', t.dataset.type === type));
+      document.querySelectorAll('.wear-type-panel').forEach(p => p.classList.toggle('active', p.id === `wearPanel_${type}`));
+    }
+
     function saveSettings() {
       const vals = {};
       let valid = true;
-      WEAR_KEYS.forEach(k => {
-        const v = parseFloat(document.getElementById(k).value);
-        if (isNaN(v) || v < 0) { valid = false; return; }
-        vals[k] = v;
+      WEAR_TYPES.forEach(type => {
+        vals[type] = {};
+        WEAR_FIELDS.forEach(field => {
+          const v = parseFloat(document.getElementById(`${field}_${type}`).value);
+          if (isNaN(v) || v < 0) { valid = false; return; }
+          vals[type][field] = v;
+        });
       });
       if (!valid) { showToast('Please enter valid positive numbers.', false); return; }
       localStorage.setItem('rt_wear_limits', JSON.stringify(vals));
@@ -606,7 +682,11 @@
     }
 
     function resetDefaults() {
-      WEAR_KEYS.forEach(k => { document.getElementById(k).value = WEAR_DEFAULTS[k]; });
+      WEAR_TYPES.forEach(type => {
+        WEAR_FIELDS.forEach(field => {
+          document.getElementById(`${field}_${type}`).value = WEAR_DEFAULTS[type][field];
+        });
+      });
       localStorage.removeItem('rt_wear_limits');
       showToast('Wear limits reset to defaults.', true);
     }
