@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wheel Asset Entry — RailTrack QR</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -444,6 +445,34 @@
     .act-link:hover { text-decoration: underline; }
 
     @media (max-width: 760px) { .act-section { margin: 20px 14px 40px; } }
+
+    /* ── Entry two-column layout ── */
+    .entry-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+    .entry-form-col { min-width: 0; }
+    .entry-sidebar { position: sticky; top: 76px; }
+
+    /* QR Widget */
+    .qr-widget { background: var(--white); border-radius: 14px; box-shadow: 0 2px 12px rgba(10,42,74,.07); overflow: hidden; }
+    .qr-widget-head { padding: 20px 20px 14px; border-bottom: 1px solid #e8eef5; }
+    .qr-widget-head h3 { font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 5px; }
+    .qr-widget-head p  { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+    .qr-widget-body { padding: 20px; }
+    .qr-frame { border: 2px dashed #d0dde8; border-radius: 12px; padding: 16px; display: flex; align-items: center; justify-content: center; min-height: 192px; background: #fafbfc; margin-bottom: 16px; }
+    .qr-placeholder { text-align: center; color: #c8d8e8; }
+    .qr-placeholder p { font-size: 12px; color: #b0c0cc; margin-top: 10px; }
+    #qrCode { display: none; }
+    #qrCode canvas, #qrCode img { display: block; border-radius: 4px; }
+    .qr-meta { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid #f0f4f8; }
+    .qr-meta-key { font-size: 12.5px; color: var(--text-muted); }
+    .qr-meta-val { font-size: 13.5px; font-weight: 700; color: var(--text-main); font-family: monospace; letter-spacing: .4px; }
+    .btn-download-qr { width: 100%; padding: 10px 14px; border: 1.5px solid #d0dde8; border-radius: var(--radius); background: var(--white); font-size: 13px; font-weight: 600; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 6px; transition: background .15s, border-color .15s, color .15s; font-family: inherit; }
+    .btn-download-qr:hover:not(:disabled) { background: #f0f4f8; border-color: var(--rail-mid); color: var(--rail-mid); }
+    .btn-download-qr:disabled { opacity: .4; cursor: not-allowed; }
+
+    @media (max-width: 1100px) {
+      .entry-layout { grid-template-columns: 1fr; }
+      .entry-sidebar { position: static; }
+    }
   </style>
 </head>
 <body>
@@ -531,6 +560,9 @@
       <div class="page-title">New Wheel Asset Entry</div>
       <div class="page-subtitle">WAG 7 — Wheel Position at ELS/ED &nbsp;·&nbsp; All fields marked <span style="color:var(--danger)">*</span> are required</div>
 
+      <div class="entry-layout">
+      <div class="entry-form-col">
+
       <form id="entryForm" onsubmit="handleSubmit(event)" novalidate>
 
         <!-- Section 1: Identification -->
@@ -541,6 +573,14 @@
           </div>
           <div class="card-body">
             <div class="grid-4">
+
+              <div class="field">
+                <label>TM ID</label>
+                <div class="input-wrap">
+                  <svg class="fi" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M3.5 2a.5.5 0 0 0-.5.5v11a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-11a.5.5 0 0 0-.5-.5H12a.5.5 0 0 1 0-1h.5A1.5 1.5 0 0 1 14 3.5v11a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 14.5v-11A1.5 1.5 0 0 1 3.5 2H4a.5.5 0 0 1 0 1h-.5z"/><path d="M10 .5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5.5.5 0 0 1-.5.5.5.5 0 0 0-.5.5V2a.5.5 0 0 0 .5.5h5A.5.5 0 0 0 11 2v-.5a.5.5 0 0 0-.5-.5.5.5 0 0 1-.5-.5z"/></svg>
+                  <input type="text" id="tmId" placeholder="e.g. TM-1344" oninput="updateQR()" />
+                </div>
+              </div>
 
               <div class="field">
                 <label>Axle No. <span class="req">*</span></label>
@@ -757,10 +797,47 @@
             </a>
           </div>
         </div>
-      </div>
+      </div><!-- /.act-section -->
 
-    </div>
-  </div>
+      </div><!-- /.entry-form-col -->
+
+      <!-- QR Preview Sidebar -->
+      <div class="entry-sidebar">
+        <div class="qr-widget">
+          <div class="qr-widget-head">
+            <h3>QR Preview</h3>
+            <p>The QR code updates automatically when you enter the TM_ID.</p>
+          </div>
+          <div class="qr-widget-body">
+            <div class="qr-frame">
+              <div class="qr-placeholder" id="qrPlaceholder">
+                <svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M0 .5A.5.5 0 0 1 .5 0h3a.5.5 0 0 1 0 1H1v2.5a.5.5 0 0 1-1 0v-3zm12 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0V1h-2.5a.5.5 0 0 1-.5-.5zM.5 12a.5.5 0 0 1 .5.5V15h2.5a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H15v-2.5a.5.5 0 0 1 .5-.5zM4 4h1v1H4V4z"/>
+                  <path d="M7 2H2v5h5V2zM3 3h3v3H3V3zm2 8H4v1h1v-1z"/>
+                  <path d="M7 9H2v5h5V9zm-4 1h3v3H3v-3zm8-6h1v1h-1V4z"/>
+                  <path d="M9 2h5v5H9V2zm1 1v3h3V3h-3zM8 8v2h1v1H8v1h2v-2h1v2h1v-1h2v-1h-3V8H8zm2 2H9V9h1v1zm4 2h-1v1h-2v1h3v-2zm-4 2v-1H8v1h2z"/>
+                  <path d="M12 9h2V8h-2v1z"/>
+                </svg>
+                <p>Enter TM ID to generate QR</p>
+              </div>
+              <div id="qrCode"></div>
+            </div>
+            <div class="qr-meta">
+              <span class="qr-meta-key">TM_ID</span>
+              <span class="qr-meta-val" id="qrTmDisplay">—</span>
+            </div>
+            <button class="btn-download-qr" id="downloadQrBtn" onclick="downloadQR()" disabled>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+              Download QR
+            </button>
+          </div>
+        </div>
+      </div><!-- /.entry-sidebar -->
+
+      </div><!-- /.entry-layout -->
+
+    </div><!-- /.page-content -->
+  </div><!-- /.main -->
 
   <!-- Toast notification -->
   <div class="toast" id="toast">
@@ -835,7 +912,62 @@
 
     // Remarks
     set('remarks', w.remarks);
+
+    // TM ID – auto-generate from sl
+    const tmIdEl = document.getElementById('tmId');
+    if (tmIdEl) { tmIdEl.value = 'TM-' + (1300 + w.sl); updateQR(); }
   })();
+
+  // ── QR Code Widget ──
+  let _qrInstance = null;
+
+  function updateQR() {
+    const tmId = (document.getElementById('tmId')?.value || '').trim();
+    const placeholder = document.getElementById('qrPlaceholder');
+    const qrBox = document.getElementById('qrCode');
+    const display = document.getElementById('qrTmDisplay');
+    const btn = document.getElementById('downloadQrBtn');
+
+    if (!tmId) {
+      placeholder.style.display = '';
+      qrBox.style.display = 'none';
+      display.textContent = '—';
+      btn.disabled = true;
+      if (_qrInstance) { _qrInstance.clear(); _qrInstance = null; }
+      return;
+    }
+
+    display.textContent = tmId;
+    placeholder.style.display = 'none';
+    qrBox.style.display = 'flex';
+    qrBox.style.justifyContent = 'center';
+
+    if (_qrInstance) {
+      _qrInstance.clear();
+      _qrInstance.makeCode(tmId);
+    } else {
+      _qrInstance = new QRCode(qrBox, {
+        text: tmId,
+        width: 160,
+        height: 160,
+        colorDark: '#0a2a4a',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+    btn.disabled = false;
+  }
+
+  function downloadQR() {
+    const tmId = (document.getElementById('tmId')?.value || '').trim();
+    if (!tmId || !_qrInstance) return;
+    const canvas = document.querySelector('#qrCode canvas');
+    if (!canvas) return;
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = tmId.replace(/[^a-zA-Z0-9_-]/g, '_') + '_QR.png';
+    a.click();
+  }
 
     // ── Auto-calculate Approx Dia & Profile After WT ──
     function calcApproxFields() {
