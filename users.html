@@ -74,7 +74,7 @@
     /* Table */
     .table-card { background:var(--white); border-radius:12px; box-shadow:0 2px 10px rgba(10,42,74,.07); overflow:hidden; }
     .table-wrap  { overflow-x:auto; }
-    table.u-table { width:100%; border-collapse:collapse; font-size:13px; min-width:860px; }
+    table.u-table { width:100%; border-collapse:collapse; font-size:13px; min-width:760px; }
     .u-table thead th { background:var(--rail-blue); color:#fff; padding:11px 14px; text-align:left; font-weight:600; font-size:12px; letter-spacing:.3px; white-space:nowrap; cursor:pointer; user-select:none; }
     .u-table thead th:hover { background:#0d3360; } .u-table thead th.sorted { background:#164e8a; }
     .sort-icon { margin-left:4px; opacity:.5; font-size:10px; }
@@ -90,21 +90,21 @@
     .u-name { font-weight:600; font-size:13px; }
     .u-email { font-size:11.5px; color:var(--text-muted); }
 
-    /* Badges */
-    .role-badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:6px; font-size:11.5px; font-weight:700; }
-    .role-admin    { background:#e8f0f9; color:var(--rail-mid); }
-    .role-inspector{ background:#f0fdf4; color:#15803d; }
-    .role-viewer   { background:#f8fafc; color:var(--text-muted); border:1px solid #e2e8f0; }
-    .role-supervisor{ background:#faf5ff; color:#6b21a8; }
+    /* Team badge */
+    .team-badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:6px; font-size:11.5px; font-weight:700; }
+    .team-operation   { background:#e8f0f9; color:var(--rail-mid); }
+    .team-maintenance { background:#faf5ff; color:#6b21a8; }
+    .team-inspection  { background:#f0fdf4; color:#15803d; }
+    .team-administration { background:#fff8e8; color:#92600a; }
+    .team-engineering { background:#fff5f5; color:#b91c1c; }
 
+    /* Status pill */
     .status-pill { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; }
     .status-dot  { width:6px; height:6px; border-radius:50%; }
     .status-active   { background:#f0fff4; color:#276749; border:1px solid #9ae6b4; }
     .status-active .status-dot { background:#38a169; }
     .status-inactive { background:#fff5f5; color:var(--danger); border:1px solid #feb2b2; }
     .status-inactive .status-dot { background:var(--danger); }
-
-    .group-tag { display:inline-flex; background:#e8f0f9; color:var(--rail-mid); padding:2px 7px; border-radius:4px; font-size:11.5px; font-weight:600; margin:1px; }
 
     /* Action buttons */
     .action-btns { display:flex; gap:5px; }
@@ -113,8 +113,6 @@
     .icon-btn.edit:hover { background:#c6f6d5; }
     .icon-btn.del    { background:#fff5f5; color:var(--danger); }
     .icon-btn.del:hover  { background:#fed7d7; }
-    .icon-btn.view   { background:#e8f0f9; color:var(--rail-mid); }
-    .icon-btn.view:hover { background:#c8d8f0; }
 
     /* Empty */
     .empty-state { padding:60px 20px; text-align:center; color:var(--text-muted); display:none; }
@@ -133,34 +131,53 @@
     /* ── Modal ── */
     .overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:300; display:none; align-items:center; justify-content:center; }
     .overlay.open { display:flex; }
-    .modal { background:var(--white); border-radius:14px; width:520px; max-width:95vw; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,.25); animation:fadeUp .22s ease; }
+    .modal { background:var(--white); border-radius:14px; width:560px; max-width:95vw; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,.25); animation:fadeUp .22s ease; }
     @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
-    .modal-head { padding:20px 24px 16px; border-bottom:1px solid #e8eef5; display:flex; align-items:center; justify-content:space-between; background:var(--rail-blue); border-radius:14px 14px 0 0; }
-    .modal-head h3 { font-size:15px; font-weight:700; color:#fff; }
-    .modal-close { background:none; border:none; cursor:pointer; color:rgba(255,255,255,.7); font-size:22px; line-height:1; padding:2px 6px; border-radius:6px; }
-    .modal-close:hover { color:#fff; background:rgba(255,255,255,.1); }
+
+    /* Light modal header (matches reference image) */
+    .modal-head { padding:20px 24px 16px; border-bottom:1px solid #e8eef5; display:flex; align-items:flex-start; justify-content:space-between; background:var(--white); border-radius:14px 14px 0 0; }
+    .modal-head-text h3 { font-size:16px; font-weight:700; color:var(--text-main); }
+    .modal-head-text p  { font-size:13px; color:var(--text-muted); margin-top:3px; }
+    .modal-close { background:#f0f4f8; border:none; cursor:pointer; color:var(--text-muted); font-size:18px; line-height:1; padding:5px 9px; border-radius:7px; flex-shrink:0; transition:background .15s,color .15s; }
+    .modal-close:hover { background:#e2e8f0; color:var(--text-main); }
     .modal-body { flex:1; overflow-y:auto; padding:22px 24px; }
     .modal-foot { padding:16px 24px; border-top:1px solid #e8eef5; display:flex; gap:8px; justify-content:flex-end; }
 
     /* Form fields */
     .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-    .form-grid.full { grid-template-columns:1fr; }
     .field { display:flex; flex-direction:column; gap:6px; }
     .field.span2 { grid-column:span 2; }
     .field label { font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.4px; }
-    .field input, .field select, .field textarea { padding:10px 12px; border:1.5px solid #d0dde8; border-radius:var(--radius); font-size:13.5px; font-family:inherit; background:#f8fafc; outline:none; transition:border-color .18s,box-shadow .18s; }
-    .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--rail-mid); box-shadow:0 0 0 3px rgba(15,61,110,.1); background:#fff; }
-    .field textarea { resize:vertical; min-height:72px; }
-    .field-hint { font-size:11.5px; color:var(--text-muted); }
+    .field input, .field select { padding:10px 12px; border:1.5px solid #d0dde8; border-radius:var(--radius); font-size:13.5px; font-family:inherit; background:#f8fafc; outline:none; transition:border-color .18s,box-shadow .18s; }
+    .field input:focus, .field select:focus { border-color:var(--rail-mid); box-shadow:0 0 0 3px rgba(15,61,110,.1); background:#fff; }
+    .field input::placeholder { color:#b0c0cc; }
     .field-error { font-size:11.5px; color:var(--danger); display:none; }
-    .field.has-error input, .field.has-error select { border-color:var(--danger); }
+    .field.has-error input, .field.has-error select { border-color:var(--danger); box-shadow:0 0 0 3px rgba(229,62,62,.1); }
     .field.has-error .field-error { display:block; }
-    .divider { grid-column:span 2; height:1px; background:#e8eef5; margin:4px 0; }
+
+    /* Password strength bar */
+    .pw-strength-bar { height:5px; border-radius:3px; background:#e2e8f0; margin-top:8px; overflow:hidden; }
+    .pw-strength-fill { height:100%; border-radius:3px; width:0%; transition:width .35s ease,background .35s ease; }
+    .pw-strength-label { font-size:11.5px; font-weight:700; margin-top:5px; min-height:16px; }
+    .pw-strength-label.weak       { color:#c53030; }
+    .pw-strength-label.fair       { color:#d97706; }
+    .pw-strength-label.good       { color:#b45309; }
+    .pw-strength-label.strong     { color:#276749; }
+    .pw-strength-label.very-strong{ color:#276749; }
+
+    /* Password requirements checklist */
+    .pw-rules-wrap { grid-column:span 2; margin-top:4px; }
+    .pw-rules { background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:9px; padding:12px 14px; display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; }
+    .pw-rule { display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--text-muted); padding:2px 0; transition:color .2s; }
+    .pw-rule.pass { color:#276749; }
+    .pw-rule.fail { color:var(--danger); }
+    .pw-rule-icon { font-size:12px; font-weight:900; width:14px; flex-shrink:0; text-align:center; }
 
     /* Delete confirm */
-    .del-modal .modal-head { background:#c53030; }
+    .del-modal .modal-head { background:#fff5f5; border-bottom-color:#fed7d7; }
+    .del-modal .modal-head-text h3 { color:#c53030; }
     .del-body { padding:24px; text-align:center; }
-    .del-body .warn-icon { width:52px; height:52px; background:#fff5f5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; color:var(--danger); }
+    .del-body .warn-icon { width:56px; height:56px; background:#fff5f5; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; color:var(--danger); }
     .del-body h4 { font-size:16px; font-weight:700; margin-bottom:8px; }
     .del-body p  { font-size:13.5px; color:var(--text-muted); }
 
@@ -178,7 +195,8 @@
       .page { padding:16px 14px 40px; }
       .stat-row { grid-template-columns:1fr 1fr; }
       .form-grid { grid-template-columns:1fr; }
-      .field.span2 { grid-column:span 1; }
+      .field.span2, .pw-rules-wrap { grid-column:span 1; }
+      .pw-rules { grid-template-columns:1fr; }
     }
   </style>
 </head>
@@ -207,17 +225,9 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3 4.5h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2zm0 3h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2zm0 3h10a1 1 0 0 1 0 2H3a1 1 0 0 1 0-2z"/></svg>
         Wheel Assets
       </a>
-      <a class="nav-item" href="inspection-log.html" style="display:none">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3zm2 3.5a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1H5z"/></svg>
-        Inspection Log
-      </a>
       <a class="nav-item" href="activity-log.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
         Activity Log
-      </a>
-      <a class="nav-item" href="#" style="display:none">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3zm1 3h8a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1zm0 2h8a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1zm0 2h5a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1z"/></svg>
-        Reports
       </a>
       <a class="nav-item" href="settings.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/></svg>
@@ -259,24 +269,25 @@
         <div class="stat-card blue"><div class="stat-icon blue"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path fill-rule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"/><path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg></div><div><div class="stat-val" id="scTotal">—</div><div class="stat-lbl">Total Users</div></div></div>
         <div class="stat-card green"><div class="stat-icon green"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/></svg></div><div><div class="stat-val" id="scActive">—</div><div class="stat-lbl">Active</div></div></div>
         <div class="stat-card red"><div class="stat-icon red"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/></svg></div><div><div class="stat-val" id="scInactive">—</div><div class="stat-lbl">Inactive</div></div></div>
-        <div class="stat-card amber"><div class="stat-icon amber"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg></div><div><div class="stat-val" id="scAdmins">—</div><div class="stat-lbl">Admins</div></div></div>
+        <div class="stat-card amber"><div class="stat-icon amber"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg></div><div><div class="stat-val" id="scTeams">—</div><div class="stat-lbl">Teams</div></div></div>
       </div>
 
       <!-- Toolbar -->
       <div class="toolbar">
         <div class="search-wrap">
           <svg class="si" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.156a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/></svg>
-          <input type="text" id="searchInput" placeholder="Search name, username, email, department…" oninput="onSearch()" />
+          <input type="text" id="searchInput" placeholder="Search name, email, team, location…" oninput="onSearch()" />
           <button class="search-clear" id="searchClear" onclick="clearSearch()">×</button>
         </div>
         <div class="filter-item">
-          <label>Role</label>
-          <select id="filterRole" onchange="applyFilters()">
-            <option value="">All Roles</option>
-            <option value="Admin">Admin</option>
-            <option value="Supervisor">Supervisor</option>
-            <option value="Inspector">Inspector</option>
-            <option value="Viewer">Viewer</option>
+          <label>Team</label>
+          <select id="filterTeam" onchange="applyFilters()">
+            <option value="">All Teams</option>
+            <option value="Operation">Operation</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Inspection">Inspection</option>
+            <option value="Administration">Administration</option>
+            <option value="Engineering">Engineering</option>
           </select>
         </div>
         <div class="filter-item">
@@ -285,16 +296,6 @@
             <option value="">All Status</option>
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
-          </select>
-        </div>
-        <div class="filter-item">
-          <label>Group</label>
-          <select id="filterGroup" onchange="applyFilters()">
-            <option value="">All Groups</option>
-            <option value="ELS/ED">ELS/ED</option>
-            <option value="GOC">GOC</option>
-            <option value="Supervisors">Supervisors</option>
-            <option value="Admins">Admins</option>
           </select>
         </div>
         <div class="toolbar-actions">
@@ -313,13 +314,11 @@
           <table class="u-table">
             <thead>
               <tr>
-                <th onclick="sortBy('name')"     data-col="name">User<span class="sort-icon" id="si-name">↕</span></th>
-                <th onclick="sortBy('username')" data-col="username">Username<span class="sort-icon" id="si-username">↕</span></th>
-                <th onclick="sortBy('role')"     data-col="role">Role<span class="sort-icon" id="si-role">↕</span></th>
-                <th onclick="sortBy('dept')"     data-col="dept">Department<span class="sort-icon" id="si-dept">↕</span></th>
-                <th>Groups</th>
+                <th onclick="sortBy('name')"      data-col="name">User<span class="sort-icon" id="si-name">↕</span></th>
+                <th onclick="sortBy('team')"      data-col="team">Team<span class="sort-icon" id="si-team">↕</span></th>
+                <th onclick="sortBy('location')"  data-col="location">Location<span class="sort-icon" id="si-location">↕</span></th>
                 <th onclick="sortBy('lastLogin')" data-col="lastLogin">Last Login<span class="sort-icon" id="si-lastLogin">↕</span></th>
-                <th onclick="sortBy('status')"   data-col="status">Status<span class="sort-icon" id="si-status">↕</span></th>
+                <th onclick="sortBy('status')"    data-col="status">Status<span class="sort-icon" id="si-status">↕</span></th>
                 <th style="cursor:default">Actions</th>
               </tr>
             </thead>
@@ -339,89 +338,109 @@
     </div>
   </div>
 
-  <!-- Add/Edit Modal -->
+  <!-- Add / Edit Modal -->
   <div class="overlay" id="formOverlay">
     <div class="modal">
       <div class="modal-head">
-        <h3 id="formTitle">Add User</h3>
+        <div class="modal-head-text">
+          <h3 id="formTitle">Add User</h3>
+          <p id="formSubtitle">Create a new user account and assign access.</p>
+        </div>
         <button class="modal-close" onclick="closeForm()">×</button>
       </div>
       <div class="modal-body">
         <div class="form-grid">
+
+          <!-- Full Name -->
           <div class="field">
             <label>Full Name *</label>
-            <input type="text" id="fName" placeholder="e.g. Anand Kumar" />
+            <input type="text" id="fName" placeholder="e.g. Priya Menon" />
             <span class="field-error" id="fName-err">Full name is required.</span>
           </div>
-          <div class="field">
-            <label>Username *</label>
-            <input type="text" id="fUsername" placeholder="e.g. a.kumar" />
-            <span class="field-error" id="fUsername-err">Username is required.</span>
-          </div>
+
+          <!-- Email Address -->
           <div class="field">
             <label>Email Address *</label>
-            <input type="email" id="fEmail" placeholder="e.g. a.kumar@railways.gov.in" />
-            <span class="field-error" id="fEmail-err">Valid email is required.</span>
+            <input type="email" id="fEmail" placeholder="e.g. priya@company.com" oninput="updatePwRules()" />
+            <span class="field-error" id="fEmail-err">Valid email address is required.</span>
           </div>
+
+          <!-- Team -->
           <div class="field">
-            <label>Phone</label>
-            <input type="text" id="fPhone" placeholder="e.g. +91-98765-43210" />
-          </div>
-          <div class="field">
-            <label>Role *</label>
-            <select id="fRole">
-              <option value="">— Select Role —</option>
-              <option value="Admin">Admin</option>
-              <option value="Supervisor">Supervisor</option>
-              <option value="Inspector">Inspector</option>
-              <option value="Viewer">Viewer</option>
+            <label>Team *</label>
+            <select id="fTeam">
+              <option value="">— Select Team —</option>
+              <option value="Operation">Operation</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Inspection">Inspection</option>
+              <option value="Administration">Administration</option>
+              <option value="Engineering">Engineering</option>
             </select>
-            <span class="field-error" id="fRole-err">Role is required.</span>
+            <span class="field-error" id="fTeam-err">Team is required.</span>
           </div>
+
+          <!-- Location -->
           <div class="field">
-            <label>Department</label>
-            <input type="text" id="fDept" placeholder="e.g. ELS/ED, GOC" />
+            <label>Location *</label>
+            <input type="text" id="fLocation" placeholder="e.g. Chennai HQ" />
+            <span class="field-error" id="fLocation-err">Location is required.</span>
           </div>
+
+          <!-- Status -->
           <div class="field">
-            <label>Designation</label>
-            <input type="text" id="fDesig" placeholder="e.g. Wheel Inspector" />
-          </div>
-          <div class="field">
-            <label>Employee ID</label>
-            <input type="text" id="fEmpId" placeholder="e.g. EMP-0042" />
-          </div>
-          <div class="field">
-            <label>Groups</label>
-            <select id="fGroup">
-              <option value="">— Select Group —</option>
-              <option value="Admins">Admins</option>
-              <option value="Supervisors">Supervisors</option>
-              <option value="ELS/ED">ELS/ED</option>
-              <option value="GOC">GOC</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Status</label>
+            <label>Status *</label>
             <select id="fStatus">
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
             </select>
           </div>
-          <div class="divider"></div>
-          <div class="field" id="fPasswordField">
+
+          <!-- Spacer -->
+          <div></div>
+
+          <!-- Password -->
+          <div class="field" id="fPasswordWrap">
             <label>Password *</label>
-            <input type="password" id="fPassword" placeholder="Min 8 characters" />
-            <span class="field-error" id="fPassword-err">Password (min 8 chars) is required.</span>
+            <input type="password" id="fPassword" placeholder="Create password" oninput="updatePwStrength()" />
+            <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwFill"></div></div>
+            <div class="pw-strength-label" id="pwLabel"></div>
+            <span class="field-error" id="fPassword-err">Password does not meet requirements.</span>
           </div>
-          <div class="field" id="fConfirmField">
+
+          <!-- Confirm Password -->
+          <div class="field" id="fConfirmWrap">
             <label>Confirm Password *</label>
-            <input type="password" id="fConfirm" placeholder="Re-enter password" />
+            <input type="password" id="fConfirm" placeholder="Confirm password" oninput="updatePwRules()" />
             <span class="field-error" id="fConfirm-err">Passwords do not match.</span>
           </div>
-          <div class="field span2">
-            <label>Notes</label>
-            <textarea id="fNotes" placeholder="Any additional notes about this user…"></textarea>
+
+          <!-- Requirements checklist -->
+          <div class="pw-rules-wrap" id="pwRulesWrap">
+            <div class="pw-rules">
+              <div class="pw-rule" id="rule-len">
+                <span class="pw-rule-icon">✓</span>At least 8 characters
+              </div>
+              <div class="pw-rule" id="rule-upper">
+                <span class="pw-rule-icon">✓</span>One uppercase letter (A–Z)
+              </div>
+              <div class="pw-rule" id="rule-lower">
+                <span class="pw-rule-icon">✓</span>One lowercase letter (a–z)
+              </div>
+              <div class="pw-rule" id="rule-num">
+                <span class="pw-rule-icon">✓</span>One number (0–9)
+              </div>
+              <div class="pw-rule" id="rule-special">
+                <span class="pw-rule-icon">✓</span>One special character (!@#$%^&amp;*…)
+              </div>
+              <div class="pw-rule" id="rule-noinfo">
+                <span class="pw-rule-icon">✓</span>Must not contain email or name
+              </div>
+              <div class="pw-rule" id="rule-common">
+                <span class="pw-rule-icon">✓</span>Must not be a common password
+              </div>
+            </div>
           </div>
+
         </div>
       </div>
       <div class="modal-foot">
@@ -434,11 +453,14 @@
   <!-- Delete Modal -->
   <div class="overlay" id="delOverlay">
     <div class="modal del-modal" style="width:420px">
-      <div class="modal-head"><h3>Delete User</h3><button class="modal-close" onclick="closeDel()">×</button></div>
+      <div class="modal-head">
+        <div class="modal-head-text"><h3>Delete User</h3><p>This action cannot be undone.</p></div>
+        <button class="modal-close" onclick="closeDel()">×</button>
+      </div>
       <div class="del-body">
-        <div class="warn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.553.553 0 0 1-1.1 0L7.1 4.995z"/></svg></div>
+        <div class="warn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.553.553 0 0 1-1.1 0L7.1 4.995z"/></svg></div>
         <h4>Delete <span id="delName">this user</span>?</h4>
-        <p style="margin-top:6px">This action cannot be undone. The user will lose all access immediately.</p>
+        <p style="margin-top:6px">The user will lose all access immediately.</p>
       </div>
       <div class="modal-foot"><button class="btn btn-ghost" onclick="closeDel()">Cancel</button><button class="btn btn-danger" onclick="confirmDelete()">Delete User</button></div>
     </div>
@@ -448,21 +470,23 @@
   <div class="toast" id="toast"></div>
 
   <script>
+  const COMMON_PASSWORDS = ['password','password123','123456','12345678','qwerty','abc123','111111','admin','letmein','welcome','monkey','dragon','pass','master','hello'];
+  const TEAM_CLS = { Operation:'team-operation', Maintenance:'team-maintenance', Inspection:'team-inspection', Administration:'team-administration', Engineering:'team-engineering' };
   const COLORS = ['#0f3d6e','#276749','#6b21a8','#92600a','#c53030','#0369a1','#b45309'];
   function colorFor(name) { let h=0; for(let c of name) h=(h*31+c.charCodeAt(0))%COLORS.length; return COLORS[h]; }
   function initials(name) { return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
 
   let USERS = [
-    { id:1, name:'Anand Kumar',      username:'admin',       email:'a.kumar@railtrack.in',      phone:'+91-98765-43210', role:'Admin',      dept:'ELS/ED',   desig:'Chief Inspector',    empId:'EMP-001', group:'Admins',      status:'Active',   lastLogin:'11.06.2026 08:02', notes:'' },
-    { id:2, name:'R. Sharma',        username:'r.sharma',    email:'r.sharma@railtrack.in',     phone:'+91-97654-32109', role:'Inspector',  dept:'ELS/ED',   desig:'Wheel Inspector',    empId:'EMP-002', group:'ELS/ED',      status:'Active',   lastLogin:'11.06.2026 07:55', notes:'' },
-    { id:3, name:'S. Pillai',        username:'s.pillai',    email:'s.pillai@railtrack.in',     phone:'+91-96543-21098', role:'Inspector',  dept:'GOC',      desig:'Wheel Inspector',    empId:'EMP-003', group:'GOC',         status:'Active',   lastLogin:'10.06.2026 16:30', notes:'' },
-    { id:4, name:'D. Nair',          username:'d.nair',      email:'d.nair@railtrack.in',       phone:'+91-95432-10987', role:'Inspector',  dept:'ELS/ED',   desig:'UT Inspector',       empId:'EMP-004', group:'ELS/ED',      status:'Active',   lastLogin:'10.06.2026 14:15', notes:'Specialises in ultrasonic testing.' },
-    { id:5, name:'P. Krishnamurthy', username:'p.krishna',   email:'p.krishna@railtrack.in',    phone:'+91-94321-09876', role:'Supervisor', dept:'ELS/ED',   desig:'Sr. Supervisor',     empId:'EMP-005', group:'Supervisors', status:'Active',   lastLogin:'09.06.2026 11:00', notes:'' },
-    { id:6, name:'M. Rajan',         username:'m.rajan',     email:'m.rajan@railtrack.in',      phone:'+91-93210-98765', role:'Supervisor', dept:'GOC',      desig:'Depot Supervisor',   empId:'EMP-006', group:'Supervisors', status:'Active',   lastLogin:'08.06.2026 09:45', notes:'' },
-    { id:7, name:'L. Fernandez',     username:'l.fernandez', email:'l.fernandez@railtrack.in',  phone:'+91-92109-87654', role:'Inspector',  dept:'GOC',      desig:'Wheel Inspector',    empId:'EMP-007', group:'GOC',         status:'Active',   lastLogin:'07.06.2026 10:30', notes:'' },
-    { id:8, name:'K. Murugan',       username:'k.murugan',   email:'k.murugan@railtrack.in',    phone:'+91-91098-76543', role:'Inspector',  dept:'ELS/ED',   desig:'Wheel Inspector',    empId:'EMP-008', group:'ELS/ED',      status:'Inactive', lastLogin:'20.04.2026 15:00', notes:'On medical leave.' },
-    { id:9, name:'V. Rao',           username:'v.rao',       email:'v.rao@railtrack.in',        phone:'+91-90987-65432', role:'Viewer',     dept:'Admin',    desig:'Data Entry Operator',empId:'EMP-009', group:'ELS/ED',      status:'Active',   lastLogin:'11.06.2026 07:10', notes:'' },
-    { id:10,name:'G. Arumugam',      username:'g.arumugam',  email:'g.arumugam@railtrack.in',   phone:'+91-89876-54321', role:'Viewer',     dept:'GOC',      desig:'Clerk',              empId:'EMP-010', group:'GOC',         status:'Inactive', lastLogin:'01.05.2026 09:00', notes:'Account temporarily suspended.' },
+    { id:1,  name:'Anand Kumar',      email:'a.kumar@railtrack.in',     team:'Administration', location:'Chennai HQ',  status:'Active',   lastLogin:'11.06.2026 08:02' },
+    { id:2,  name:'R. Sharma',        email:'r.sharma@railtrack.in',    team:'Inspection',     location:'ELS/ED',      status:'Active',   lastLogin:'11.06.2026 07:55' },
+    { id:3,  name:'S. Pillai',        email:'s.pillai@railtrack.in',    team:'Operation',      location:'GOC Shed',    status:'Active',   lastLogin:'10.06.2026 16:30' },
+    { id:4,  name:'D. Nair',          email:'d.nair@railtrack.in',      team:'Inspection',     location:'ELS/ED',      status:'Active',   lastLogin:'10.06.2026 14:15' },
+    { id:5,  name:'P. Krishnamurthy', email:'p.krishna@railtrack.in',   team:'Operation',      location:'LW/PER',      status:'Active',   lastLogin:'09.06.2026 11:00' },
+    { id:6,  name:'M. Rajan',         email:'m.rajan@railtrack.in',     team:'Maintenance',    location:'GOC Shed',    status:'Active',   lastLogin:'08.06.2026 09:45' },
+    { id:7,  name:'L. Fernandez',     email:'l.fernandez@railtrack.in', team:'Engineering',    location:'Chennai HQ',  status:'Active',   lastLogin:'07.06.2026 10:30' },
+    { id:8,  name:'K. Murugan',       email:'k.murugan@railtrack.in',   team:'Inspection',     location:'ELS/ED',      status:'Inactive', lastLogin:'20.04.2026 15:00' },
+    { id:9,  name:'V. Rao',           email:'v.rao@railtrack.in',       team:'Administration', location:'Chennai HQ',  status:'Active',   lastLogin:'11.06.2026 07:10' },
+    { id:10, name:'G. Arumugam',      email:'g.arumugam@railtrack.in',  team:'Operation',      location:'GOC Shed',    status:'Inactive', lastLogin:'01.05.2026 09:00' },
   ];
   let nextId = 11;
   let filtered = [...USERS], sortCol = 'name', sortDir = 'asc', currentPage = 1, perPage = 10;
@@ -470,40 +494,39 @@
 
   doSort(); render();
 
+  // ── Search & filters ──
   function onSearch() { const v=document.getElementById('searchInput').value; document.getElementById('searchClear').style.display=v?'flex':'none'; applyFilters(); }
   function clearSearch() { document.getElementById('searchInput').value=''; document.getElementById('searchClear').style.display='none'; applyFilters(); }
   function applyFilters() {
     const q=document.getElementById('searchInput').value.trim().toLowerCase();
-    const role=document.getElementById('filterRole').value;
+    const team=document.getElementById('filterTeam').value;
     const st=document.getElementById('filterStatus').value;
-    const grp=document.getElementById('filterGroup').value;
     filtered=USERS.filter(u=>{
-      if(q && !`${u.name} ${u.username} ${u.email} ${u.dept} ${u.desig} ${u.empId}`.toLowerCase().includes(q)) return false;
-      if(role && u.role!==role) return false;
+      if(q && !`${u.name} ${u.email} ${u.team} ${u.location}`.toLowerCase().includes(q)) return false;
+      if(team && u.team!==team) return false;
       if(st   && u.status!==st) return false;
-      if(grp  && u.group!==grp) return false;
       return true;
     });
     doSort(); currentPage=1; render();
   }
   function resetFilters() {
     document.getElementById('searchInput').value=''; document.getElementById('searchClear').style.display='none';
-    ['filterRole','filterStatus','filterGroup'].forEach(id=>document.getElementById(id).value='');
+    ['filterTeam','filterStatus'].forEach(id=>document.getElementById(id).value='');
     filtered=[...USERS]; doSort(); currentPage=1; render();
   }
   function sortBy(col) { sortDir=sortCol===col?(sortDir==='asc'?'desc':'asc'):'asc'; sortCol=col; doSort(); render(); }
   function doSort() {
     const dir=sortDir==='asc'?1:-1;
-    filtered.sort((a,b)=>{
-      const av=a[sortCol]||'', bv=b[sortCol]||'';
-      return av<bv?-dir:av>bv?dir:0;
-    });
+    filtered.sort((a,b)=>{ const av=a[sortCol]||'', bv=b[sortCol]||''; return av<bv?-dir:av>bv?dir:0; });
   }
+
+  // ── Render ──
   function updateStats() {
-    document.getElementById('scTotal').textContent  =filtered.length;
-    document.getElementById('scActive').textContent =filtered.filter(u=>u.status==='Active').length;
-    document.getElementById('scInactive').textContent=filtered.filter(u=>u.status==='Inactive').length;
-    document.getElementById('scAdmins').textContent =filtered.filter(u=>u.role==='Admin').length;
+    const teams=new Set(USERS.map(u=>u.team));
+    document.getElementById('scTotal').textContent   = USERS.length;
+    document.getElementById('scActive').textContent  = USERS.filter(u=>u.status==='Active').length;
+    document.getElementById('scInactive').textContent= USERS.filter(u=>u.status==='Inactive').length;
+    document.getElementById('scTeams').textContent   = teams.size;
   }
   function updateSortIcons() {
     document.querySelectorAll('th[data-col]').forEach(th=>{
@@ -523,14 +546,12 @@
     document.getElementById('resultInfo').textContent=filtered.length<USERS.length?`Showing ${filtered.length} of ${USERS.length} users`:`${USERS.length} users total`;
   }
   function rowHTML(u) {
-    const roleCls={Admin:'role-admin',Supervisor:'role-supervisor',Inspector:'role-inspector',Viewer:'role-viewer'};
     const stCls=u.status==='Active'?'status-active':'status-inactive';
+    const tCls=TEAM_CLS[u.team]||'team-operation';
     return `<tr>
       <td><div class="user-cell"><div class="u-avatar" style="background:${colorFor(u.name)}">${initials(u.name)}</div><div><div class="u-name">${u.name}</div><div class="u-email">${u.email}</div></div></div></td>
-      <td style="font-family:monospace;font-size:12.5px;color:var(--text-muted)">${u.username}</td>
-      <td><span class="role-badge ${roleCls[u.role]||'role-viewer'}">${u.role}</span></td>
-      <td style="font-size:13px">${u.dept||'—'}</td>
-      <td>${u.group?`<span class="group-tag">${u.group}</span>`:'—'}</td>
+      <td><span class="team-badge ${tCls}">${u.team}</span></td>
+      <td style="font-size:13px;color:var(--text-muted)">${u.location||'—'}</td>
       <td style="font-size:12px;color:var(--text-muted)">${u.lastLogin||'Never'}</td>
       <td><span class="status-pill ${stCls}"><span class="status-dot"></span>${u.status}</span></td>
       <td><div class="action-btns">
@@ -552,106 +573,156 @@
   }
   function changePerPage() { perPage=parseInt(document.getElementById('perPageSelect').value); currentPage=1; render(); }
 
+  // ── Password strength ──
+  function pwChecks(pw, name, email) {
+    const lc = pw.toLowerCase();
+    const namePart = (name||'').toLowerCase().split(' ').filter(w=>w.length>2);
+    const emailPart = (email||'').toLowerCase().split('@')[0];
+    const containsInfo = namePart.some(p=>lc.includes(p)) || (emailPart.length>2 && lc.includes(emailPart));
+    return {
+      len:     pw.length >= 8,
+      upper:   /[A-Z]/.test(pw),
+      lower:   /[a-z]/.test(pw),
+      num:     /[0-9]/.test(pw),
+      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(pw),
+      noinfo:  !containsInfo,
+      common:  !COMMON_PASSWORDS.includes(lc),
+    };
+  }
+
+  function updatePwStrength() {
+    const pw = document.getElementById('fPassword').value;
+    const name = document.getElementById('fName').value;
+    const email = document.getElementById('fEmail').value;
+    const checks = pwChecks(pw, name, email);
+    const score = Object.values(checks).filter(Boolean).length;
+
+    const fill = document.getElementById('pwFill');
+    const label = document.getElementById('pwLabel');
+
+    if (!pw) {
+      fill.style.width = '0%'; fill.style.background = ''; label.textContent = ''; label.className = 'pw-strength-label';
+      updatePwRules(); return;
+    }
+
+    const levels = [
+      { max:2, pct:'14%', bg:'#e53e3e', cls:'weak',        text:'Very Weak' },
+      { max:3, pct:'28%', bg:'#d97706', cls:'fair',        text:'Weak' },
+      { max:4, pct:'50%', bg:'#b45309', cls:'good',        text:'Fair' },
+      { max:5, pct:'70%', bg:'#38a169', cls:'strong',      text:'Strong' },
+      { max:6, pct:'85%', bg:'#276749', cls:'strong',      text:'Strong' },
+      { max:7, pct:'100%',bg:'#276749', cls:'very-strong', text:'Very Strong' },
+    ];
+    const lvl = levels.find(l=>score<=l.max) || levels[levels.length-1];
+    fill.style.width = lvl.pct; fill.style.background = lvl.bg;
+    label.textContent = lvl.text; label.className = `pw-strength-label ${lvl.cls}`;
+    updatePwRules();
+  }
+
+  function updatePwRules() {
+    const pw = document.getElementById('fPassword').value;
+    const name = document.getElementById('fName').value;
+    const email = document.getElementById('fEmail').value;
+    const checks = pwChecks(pw, name, email);
+    const map = { len:'rule-len', upper:'rule-upper', lower:'rule-lower', num:'rule-num', special:'rule-special', noinfo:'rule-noinfo', common:'rule-common' };
+    Object.entries(map).forEach(([k,id])=>{
+      const el = document.getElementById(id); if(!el) return;
+      const pass = !!checks[k];
+      el.className = 'pw-rule' + (pw ? (pass?' pass':' fail') : '');
+      el.querySelector('.pw-rule-icon').textContent = pw ? (pass?'✓':'✗') : '✓';
+    });
+  }
+
   // ── CRUD ──
   function openAdd() {
-    editingId=null;
-    document.getElementById('formTitle').textContent='Add User';
-    document.getElementById('saveBtn').textContent='Save User';
-    document.getElementById('fPasswordField').style.display='';
-    document.getElementById('fConfirmField').style.display='';
-    ['fName','fUsername','fEmail','fPhone','fDept','fDesig','fEmpId','fNotes','fPassword','fConfirm'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('fRole').value=''; document.getElementById('fGroup').value=''; document.getElementById('fStatus').value='Active';
-    clearErrors(); document.getElementById('formOverlay').classList.add('open');
+    editingId = null;
+    document.getElementById('formTitle').textContent = 'Add User';
+    document.getElementById('formSubtitle').textContent = 'Create a new user account and assign access.';
+    document.getElementById('saveBtn').textContent = 'Save User';
+    document.getElementById('fPasswordWrap').style.display = '';
+    document.getElementById('fConfirmWrap').style.display = '';
+    document.getElementById('pwRulesWrap').style.display = '';
+    ['fName','fEmail','fLocation','fPassword','fConfirm'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('fTeam').value = '';
+    document.getElementById('fStatus').value = 'Active';
+    document.getElementById('pwFill').style.width = '0%';
+    document.getElementById('pwLabel').textContent = '';
+    document.getElementById('pwLabel').className = 'pw-strength-label';
+    updatePwRules();
+    clearErrors();
+    document.getElementById('formOverlay').classList.add('open');
   }
   function openEdit(id) {
-    const u=USERS.find(x=>x.id===id); if(!u) return;
-    editingId=id;
-    document.getElementById('formTitle').textContent='Edit User';
-    document.getElementById('saveBtn').textContent='Update User';
-    document.getElementById('fPasswordField').style.display='none';
-    document.getElementById('fConfirmField').style.display='none';
-    document.getElementById('fName').value=u.name;
-    document.getElementById('fUsername').value=u.username;
-    document.getElementById('fEmail').value=u.email;
-    document.getElementById('fPhone').value=u.phone||'';
-    document.getElementById('fRole').value=u.role;
-    document.getElementById('fDept').value=u.dept||'';
-    document.getElementById('fDesig').value=u.desig||'';
-    document.getElementById('fEmpId').value=u.empId||'';
-    document.getElementById('fGroup').value=u.group||'';
-    document.getElementById('fStatus').value=u.status;
-    document.getElementById('fNotes').value=u.notes||'';
-    clearErrors(); document.getElementById('formOverlay').classList.add('open');
+    const u = USERS.find(x=>x.id===id); if(!u) return;
+    editingId = id;
+    document.getElementById('formTitle').textContent = 'Edit User';
+    document.getElementById('formSubtitle').textContent = 'Update user account details.';
+    document.getElementById('saveBtn').textContent = 'Update User';
+    document.getElementById('fPasswordWrap').style.display = 'none';
+    document.getElementById('fConfirmWrap').style.display = 'none';
+    document.getElementById('pwRulesWrap').style.display = 'none';
+    document.getElementById('fName').value     = u.name;
+    document.getElementById('fEmail').value    = u.email;
+    document.getElementById('fTeam').value     = u.team;
+    document.getElementById('fLocation').value = u.location||'';
+    document.getElementById('fStatus').value   = u.status;
+    clearErrors();
+    document.getElementById('formOverlay').classList.add('open');
   }
   function closeForm() { document.getElementById('formOverlay').classList.remove('open'); }
 
-  function clearErrors() {
-    document.querySelectorAll('.field').forEach(f=>f.classList.remove('has-error'));
-  }
-  function setError(fieldId, errId) {
-    document.getElementById(fieldId).closest('.field').classList.add('has-error');
-    document.getElementById(errId).style.display='block';
-  }
-  function clearError(fieldId) {
-    document.getElementById(fieldId).closest('.field').classList.remove('has-error');
-  }
+  function clearErrors() { document.querySelectorAll('.field.has-error').forEach(f=>f.classList.remove('has-error')); }
+  function setErr(inputId, errId) { document.getElementById(inputId).closest('.field').classList.add('has-error'); }
 
   function saveUser() {
     clearErrors();
-    let valid=true;
-    const name=document.getElementById('fName').value.trim();
-    const username=document.getElementById('fUsername').value.trim();
-    const email=document.getElementById('fEmail').value.trim();
-    const role=document.getElementById('fRole').value;
-    if(!name)     { setError('fName','fName-err'); valid=false; }
-    if(!username) { setError('fUsername','fUsername-err'); valid=false; }
-    if(!email || !/\S+@\S+\.\S+/.test(email)) { setError('fEmail','fEmail-err'); valid=false; }
-    if(!role)     { setError('fRole','fRole-err'); valid=false; }
+    let ok = true;
+    const name     = document.getElementById('fName').value.trim();
+    const email    = document.getElementById('fEmail').value.trim();
+    const team     = document.getElementById('fTeam').value;
+    const location = document.getElementById('fLocation').value.trim();
+    if(!name)                              { setErr('fName','fName-err'); ok=false; }
+    if(!email||!/\S+@\S+\.\S+/.test(email)){ setErr('fEmail','fEmail-err'); ok=false; }
+    if(!team)                              { setErr('fTeam','fTeam-err'); ok=false; }
+    if(!location)                          { setErr('fLocation','fLocation-err'); ok=false; }
+
     if(!editingId) {
-      const pw=document.getElementById('fPassword').value;
-      const cf=document.getElementById('fConfirm').value;
-      if(pw.length<8) { setError('fPassword','fPassword-err'); valid=false; }
-      if(pw!==cf)     { setError('fConfirm','fConfirm-err'); valid=false; }
+      const pw = document.getElementById('fPassword').value;
+      const cf = document.getElementById('fConfirm').value;
+      const checks = pwChecks(pw, name, email);
+      const allPass = Object.values(checks).every(Boolean);
+      if(!allPass) { setErr('fPassword','fPassword-err'); ok=false; }
+      if(pw !== cf) { setErr('fConfirm','fConfirm-err'); ok=false; }
     }
-    if(!valid) return;
+    if(!ok) return;
 
-    const data = {
-      name, username, email, role,
-      phone: document.getElementById('fPhone').value.trim(),
-      dept:  document.getElementById('fDept').value.trim(),
-      desig: document.getElementById('fDesig').value.trim(),
-      empId: document.getElementById('fEmpId').value.trim(),
-      group: document.getElementById('fGroup').value,
-      status:document.getElementById('fStatus').value,
-      notes: document.getElementById('fNotes').value.trim(),
-    };
-
+    const data = { name, email, team, location, status: document.getElementById('fStatus').value };
     if(editingId) {
-      const idx=USERS.findIndex(u=>u.id===editingId);
-      USERS[idx]={...USERS[idx],...data};
-      showToast('User updated successfully.','success');
+      const idx = USERS.findIndex(u=>u.id===editingId);
+      USERS[idx] = { ...USERS[idx], ...data };
+      showToast('User updated successfully.', 'success');
     } else {
-      USERS.push({id:nextId++,...data,lastLogin:'Never'});
-      showToast('User created successfully.','success');
+      USERS.push({ id:nextId++, ...data, lastLogin:'Never' });
+      showToast('User created successfully.', 'success');
     }
     closeForm(); applyFilters();
   }
 
   function openDel(id) {
-    deletingId=id;
-    const u=USERS.find(x=>x.id===id);
-    document.getElementById('delName').textContent=u?u.name:'this user';
+    deletingId = id;
+    const u = USERS.find(x=>x.id===id);
+    document.getElementById('delName').textContent = u ? u.name : 'this user';
     document.getElementById('delOverlay').classList.add('open');
   }
   function closeDel() { document.getElementById('delOverlay').classList.remove('open'); }
   function confirmDelete() {
-    USERS=USERS.filter(u=>u.id!==deletingId);
-    closeDel(); showToast('User deleted.','error'); applyFilters();
+    USERS = USERS.filter(u=>u.id!==deletingId);
+    closeDel(); showToast('User deleted.', 'error'); applyFilters();
   }
 
   function showToast(msg, type='success') {
     const t=document.getElementById('toast'); t.textContent=msg; t.className=`toast show ${type}`;
-    setTimeout(()=>t.className='toast',3000);
+    setTimeout(()=>t.className='toast', 3000);
   }
 
   // ── Auth ──
