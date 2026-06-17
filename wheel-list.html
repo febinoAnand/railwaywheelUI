@@ -546,9 +546,9 @@
         <!-- Filters -->
         <div class="filter-group">
           <div class="filter-item">
-            <label>Position</label>
-            <select id="filterPosition" onchange="applyFilters()">
-              <option value="">All Positions</option>
+            <label>Location</label>
+            <select id="filterLocation" onchange="applyFilters()">
+              <option value="">All Locations</option>
               <option value="HR SHOP">HR Shop</option>
               <option value="YARD">Yard</option>
               <option value="wheel park">Wheel Park</option>
@@ -637,7 +637,7 @@
                 <th onclick="sortBy('released')"    data-col="released">Released Date<span class="sort-icon" id="si-released">↕</span></th>
                 <th onclick="sortBy('msu')"         data-col="msu">MSU Play<span class="sort-icon" id="si-msu">↕</span></th>
                 <th onclick="sortBy('wdist')"       data-col="wdist">Wheel Dist.<span class="sort-icon" id="si-wdist">↕</span></th>
-                <th onclick="sortBy('position')"    data-col="position">Position<span class="sort-icon" id="si-position">↕</span></th>
+                <th onclick="sortBy('location')"    data-col="location">Location<span class="sort-icon" id="si-location">↕</span></th>
                 <th style="cursor:default">Actions</th>
               </tr>
             </thead>
@@ -671,27 +671,27 @@
   <script>
   // ── Data ──
   const ALL_WHEELS = [
-    { sl:1,  axle:'HH 34-63',  loco:'27497/5', type:'WAG7', dia:1028, pePH:1.37, pePT:0.72, cePH:1.65, cePT:0.47, approxDia:1028, appxPH:1.37, appxPT:0.72, released:'',           msu:1.37, wdist:1596.80, position:'YARD',      remarks:'' },
-    { sl:2,  axle:'HH-80-39',  loco:'27906/4', type:'WAG7', dia:1033, pePH:1.96, pePT:0.72, cePH:2.98, cePT:1.29, approxDia:1033, appxPH:1.96, appxPT:0.72, released:'06.04.2026', msu:0.80, wdist:1597.24, position:'HR SHOP',    remarks:'' },
-    { sl:3,  axle:'HH-01973',  loco:'27906/6', type:'WAG7', dia:1033, pePH:2.74, pePT:0.99, cePH:2.74, cePT:1.34, approxDia:1033, appxPH:2.74, appxPT:0.99, released:'06.04.2026', msu:0.14, wdist:1596.72, position:'HR SHOP',    remarks:'' },
-    { sl:4,  axle:'SHR-301',   loco:'27906/2', type:'WAP7', dia:1034, pePH:3.35, pePT:1.32, cePH:1.24, cePT:0.14, approxDia:1034, appxPH:3.35, appxPT:1.32, released:'06.04.2026', msu:1.38, wdist:1597.38, position:'HR SHOP',    remarks:'SHARP FLANGE' },
-    { sl:5,  axle:'HH-01786',  loco:'24602/4', type:'WAG7', dia:1036, pePH:1.45, pePT:0.90, cePH:1.31, cePT:0.84, approxDia:1036, appxPH:1.45, appxPT:0.90, released:'14.03.2023', msu:0.38, wdist:1597.41, position:'YARD',      remarks:'' },
-    { sl:6,  axle:'AC-1614',   loco:'27654/2', type:'WAG9', dia:1036, pePH:0.55, pePT:0.25, cePH:0.80, cePT:0.16, approxDia:1036, appxPH:0.55, appxPT:0.25, released:'14.02.2025', msu:0.58, wdist:1597.18, position:'wheel park',  remarks:'' },
-    { sl:7,  axle:'HH-01972',  loco:'27906/1', type:'WAG7', dia:1036, pePH:2.37, pePT:0.82, cePH:2.40, cePT:1.38, approxDia:1036, appxPH:2.37, appxPT:0.82, released:'06.04.2026', msu:0.79, wdist:1596.44, position:'HR SHOP',    remarks:'MEASUREMENT TO BE DONE' },
-    { sl:8,  axle:'ELW 2476',  loco:'27906/3', type:'WAG7', dia:1036, pePH:2.67, pePT:0.71, cePH:1.56, cePT:0.69, approxDia:1036, appxPH:2.67, appxPT:0.71, released:'06.04.2026', msu:0.59, wdist:1596.63, position:'HR SHOP',    remarks:'' },
-    { sl:9,  axle:'HH-57-36',  loco:'27467/1', type:'WAG7', dia:1037, pePH:1.74, pePT:0.40, cePH:1.55, cePT:0.80, approxDia:1037, appxPH:1.74, appxPT:0.40, released:'12.03.2026', msu:1.37, wdist:1597.32, position:'YARD',      remarks:'' },
-    { sl:10, axle:'HH-41-36',  loco:'27490/4', type:'WAG9', dia:1038, pePH:3.98, pePT:1.90, cePH:1.66, cePT:0.55, approxDia:1038, appxPH:3.98, appxPT:1.90, released:'16.03.2026', msu:1.43, wdist:1597.58, position:'YARD',      remarks:'' },
-    { sl:11, axle:'HH-14-39',  loco:'24656/1', type:'WAG7', dia:1053, pePH:1.32, pePT:0.66, cePH:1.14, cePT:0.19, approxDia:1053, appxPH:1.32, appxPT:0.66, released:'17.03.2026', msu:0.63, wdist:1599.42, position:'YARD',      remarks:'BULL GEAR TEETH SUSPECTED DAMAGE' },
-    { sl:12, axle:'HH-90-30',  loco:'27472/4', type:'WAG7', dia:1053, pePH:1.18, pePT:0.06, cePH:1.37, cePT:0.00, approxDia:1053, appxPH:1.18, appxPT:0.06, released:'02.05.2026', msu:null, wdist:null,    position:'HR SHOP',    remarks:'' },
-    { sl:13, axle:'HH-61-83',  loco:'27472/5', type:'WAP7', dia:1053, pePH:1.81, pePT:0.63, cePH:2.03, cePT:0.72, approxDia:1053, appxPH:1.81, appxPT:0.63, released:'02.05.2026', msu:null, wdist:null,    position:'HR SHOP',    remarks:'' },
-    { sl:14, axle:'HH-01418',  loco:'27472/6', type:'WAG7', dia:1053, pePH:2.80, pePT:0.93, cePH:1.88, cePT:0.57, approxDia:1053, appxPH:2.80, appxPT:0.93, released:'02.05.2026', msu:null, wdist:null,    position:'HR SHOP',    remarks:'' },
-    { sl:15, axle:'HH-01-21',  loco:'27472/1', type:'WAG9', dia:1059, pePH:1.82, pePT:0.53, cePH:2.30, cePT:0.60, approxDia:1059, appxPH:1.82, appxPT:0.53, released:'30.04.2026', msu:1.13, wdist:1597.30, position:'HR SHOP',    remarks:'' },
-    { sl:16, axle:'HH-53-06',  loco:'27472/2', type:'WAG7', dia:1059, pePH:2.00, pePT:0.55, cePH:1.29, cePT:0.51, approxDia:1059, appxPH:2.00, appxPT:0.55, released:'30.04.2026', msu:0.28, wdist:1596.55, position:'HR SHOP',    remarks:'' },
-    { sl:17, axle:'HH-60-48',  loco:'27472/3', type:'WAG7', dia:1059, pePH:2.57, pePT:0.86, cePH:1.50, cePT:0.35, approxDia:1059, appxPH:2.57, appxPT:0.86, released:'30.04.2026', msu:1.64, wdist:1597.10, position:'HR SHOP',    remarks:'' },
-    { sl:18, axle:'HH-37-75',  loco:'27632/1', type:'WAP7', dia:1064, pePH:1.31, pePT:0.55, cePH:1.29, cePT:0.66, approxDia:1064, appxPH:1.31, appxPT:0.55, released:'06.03.2026', msu:0.74, wdist:1597.38, position:'wheel park',  remarks:'' },
-    { sl:19, axle:'SHH-129',   loco:'27632/4', type:'WAG9', dia:1068, pePH:1.42, pePT:0.70, cePH:2.80, cePT:1.60, approxDia:1068, appxPH:1.42, appxPT:0.70, released:'24.03.2026', msu:0.16, wdist:1597.30, position:'YARD',      remarks:'' },
-    { sl:20, axle:'HH-48-35',  loco:'GOC/TPJ', type:'WAG9', dia:1093, pePH:0.00, pePT:0.00, cePH:0.00, cePT:0.00, approxDia:1093, appxPH:0.00, appxPT:0.00, released:'20.03.2026', msu:0.10, wdist:1595.70, position:'HR SHOP',    remarks:'' },
-    { sl:21, axle:'HH 52-91',  loco:'27471/4', type:'WAG7', dia:1011, pePH:null, pePT:null, cePH:null, cePT:null,  approxDia:1011, appxPH:null, appxPT:null, released:'',           msu:null, wdist:null,    position:'wheel shop',  remarks:'' },
+    { sl:1,  axle:'HH 34-63',  loco:'27497/5', type:'WAG7', dia:1028, pePH:1.37, pePT:0.72, cePH:1.65, cePT:0.47, approxDia:1028, appxPH:1.37, appxPT:0.72, released:'',           msu:1.37, wdist:1596.80, location:'YARD',      remarks:'' },
+    { sl:2,  axle:'HH-80-39',  loco:'27906/4', type:'WAG7', dia:1033, pePH:1.96, pePT:0.72, cePH:2.98, cePT:1.29, approxDia:1033, appxPH:1.96, appxPT:0.72, released:'06.04.2026', msu:0.80, wdist:1597.24, location:'HR SHOP',    remarks:'' },
+    { sl:3,  axle:'HH-01973',  loco:'27906/6', type:'WAG7', dia:1033, pePH:2.74, pePT:0.99, cePH:2.74, cePT:1.34, approxDia:1033, appxPH:2.74, appxPT:0.99, released:'06.04.2026', msu:0.14, wdist:1596.72, location:'HR SHOP',    remarks:'' },
+    { sl:4,  axle:'SHR-301',   loco:'27906/2', type:'WAP7', dia:1034, pePH:3.35, pePT:1.32, cePH:1.24, cePT:0.14, approxDia:1034, appxPH:3.35, appxPT:1.32, released:'06.04.2026', msu:1.38, wdist:1597.38, location:'HR SHOP',    remarks:'SHARP FLANGE' },
+    { sl:5,  axle:'HH-01786',  loco:'24602/4', type:'WAG7', dia:1036, pePH:1.45, pePT:0.90, cePH:1.31, cePT:0.84, approxDia:1036, appxPH:1.45, appxPT:0.90, released:'14.03.2023', msu:0.38, wdist:1597.41, location:'YARD',      remarks:'' },
+    { sl:6,  axle:'AC-1614',   loco:'27654/2', type:'WAG9', dia:1036, pePH:0.55, pePT:0.25, cePH:0.80, cePT:0.16, approxDia:1036, appxPH:0.55, appxPT:0.25, released:'14.02.2025', msu:0.58, wdist:1597.18, location:'wheel park',  remarks:'' },
+    { sl:7,  axle:'HH-01972',  loco:'27906/1', type:'WAG7', dia:1036, pePH:2.37, pePT:0.82, cePH:2.40, cePT:1.38, approxDia:1036, appxPH:2.37, appxPT:0.82, released:'06.04.2026', msu:0.79, wdist:1596.44, location:'HR SHOP',    remarks:'MEASUREMENT TO BE DONE' },
+    { sl:8,  axle:'ELW 2476',  loco:'27906/3', type:'WAG7', dia:1036, pePH:2.67, pePT:0.71, cePH:1.56, cePT:0.69, approxDia:1036, appxPH:2.67, appxPT:0.71, released:'06.04.2026', msu:0.59, wdist:1596.63, location:'HR SHOP',    remarks:'' },
+    { sl:9,  axle:'HH-57-36',  loco:'27467/1', type:'WAG7', dia:1037, pePH:1.74, pePT:0.40, cePH:1.55, cePT:0.80, approxDia:1037, appxPH:1.74, appxPT:0.40, released:'12.03.2026', msu:1.37, wdist:1597.32, location:'YARD',      remarks:'' },
+    { sl:10, axle:'HH-41-36',  loco:'27490/4', type:'WAG9', dia:1038, pePH:3.98, pePT:1.90, cePH:1.66, cePT:0.55, approxDia:1038, appxPH:3.98, appxPT:1.90, released:'16.03.2026', msu:1.43, wdist:1597.58, location:'YARD',      remarks:'' },
+    { sl:11, axle:'HH-14-39',  loco:'24656/1', type:'WAG7', dia:1053, pePH:1.32, pePT:0.66, cePH:1.14, cePT:0.19, approxDia:1053, appxPH:1.32, appxPT:0.66, released:'17.03.2026', msu:0.63, wdist:1599.42, location:'YARD',      remarks:'BULL GEAR TEETH SUSPECTED DAMAGE' },
+    { sl:12, axle:'HH-90-30',  loco:'27472/4', type:'WAG7', dia:1053, pePH:1.18, pePT:0.06, cePH:1.37, cePT:0.00, approxDia:1053, appxPH:1.18, appxPT:0.06, released:'02.05.2026', msu:null, wdist:null,    location:'HR SHOP',    remarks:'' },
+    { sl:13, axle:'HH-61-83',  loco:'27472/5', type:'WAP7', dia:1053, pePH:1.81, pePT:0.63, cePH:2.03, cePT:0.72, approxDia:1053, appxPH:1.81, appxPT:0.63, released:'02.05.2026', msu:null, wdist:null,    location:'HR SHOP',    remarks:'' },
+    { sl:14, axle:'HH-01418',  loco:'27472/6', type:'WAG7', dia:1053, pePH:2.80, pePT:0.93, cePH:1.88, cePT:0.57, approxDia:1053, appxPH:2.80, appxPT:0.93, released:'02.05.2026', msu:null, wdist:null,    location:'HR SHOP',    remarks:'' },
+    { sl:15, axle:'HH-01-21',  loco:'27472/1', type:'WAG9', dia:1059, pePH:1.82, pePT:0.53, cePH:2.30, cePT:0.60, approxDia:1059, appxPH:1.82, appxPT:0.53, released:'30.04.2026', msu:1.13, wdist:1597.30, location:'HR SHOP',    remarks:'' },
+    { sl:16, axle:'HH-53-06',  loco:'27472/2', type:'WAG7', dia:1059, pePH:2.00, pePT:0.55, cePH:1.29, cePT:0.51, approxDia:1059, appxPH:2.00, appxPT:0.55, released:'30.04.2026', msu:0.28, wdist:1596.55, location:'HR SHOP',    remarks:'' },
+    { sl:17, axle:'HH-60-48',  loco:'27472/3', type:'WAG7', dia:1059, pePH:2.57, pePT:0.86, cePH:1.50, cePT:0.35, approxDia:1059, appxPH:2.57, appxPT:0.86, released:'30.04.2026', msu:1.64, wdist:1597.10, location:'HR SHOP',    remarks:'' },
+    { sl:18, axle:'HH-37-75',  loco:'27632/1', type:'WAP7', dia:1064, pePH:1.31, pePT:0.55, cePH:1.29, cePT:0.66, approxDia:1064, appxPH:1.31, appxPT:0.55, released:'06.03.2026', msu:0.74, wdist:1597.38, location:'wheel park',  remarks:'' },
+    { sl:19, axle:'SHH-129',   loco:'27632/4', type:'WAG9', dia:1068, pePH:1.42, pePT:0.70, cePH:2.80, cePT:1.60, approxDia:1068, appxPH:1.42, appxPT:0.70, released:'24.03.2026', msu:0.16, wdist:1597.30, location:'YARD',      remarks:'' },
+    { sl:20, axle:'HH-48-35',  loco:'GOC/TPJ', type:'WAG9', dia:1093, pePH:0.00, pePT:0.00, cePH:0.00, cePT:0.00, approxDia:1093, appxPH:0.00, appxPT:0.00, released:'20.03.2026', msu:0.10, wdist:1595.70, location:'HR SHOP',    remarks:'' },
+    { sl:21, axle:'HH 52-91',  loco:'27471/4', type:'WAG7', dia:1011, pePH:null, pePT:null, cePH:null, cePT:null,  approxDia:1011, appxPH:null, appxPT:null, released:'',           msu:null, wdist:null,    location:'wheel shop',  remarks:'' },
   ];
 
   // ── State ──
@@ -723,14 +723,14 @@
   // ── Filters ──
   function applyFilters() {
     const q    = document.getElementById('searchInput').value.trim().toLowerCase();
-    const pos  = document.getElementById('filterPosition').value;
+    const loc  = document.getElementById('filterLocation').value;
     const dia  = document.getElementById('filterDia').value;
     const loco = document.getElementById('filterLoco').value;
     const type = document.getElementById('filterType').value;
 
     filtered = ALL_WHEELS.filter(w => {
-      if (q && !`${w.axle} ${w.loco} ${w.position}`.toLowerCase().includes(q)) return false;
-      if (pos  && w.position !== pos) return false;
+      if (q && !`${w.axle} ${w.loco} ${w.location}`.toLowerCase().includes(q)) return false;
+      if (loc  && w.location !== loc) return false;
       if (loco && w.loco !== loco)    return false;
       if (type && w.type !== type)    return false;
       if (dia) {
@@ -753,7 +753,7 @@
   function resetFilters() {
     document.getElementById('searchInput').value = '';
     document.getElementById('searchClear').style.display = 'none';
-    document.getElementById('filterPosition').value = '';
+    document.getElementById('filterLocation').value = '';
     document.getElementById('filterDia').value = '';
     document.getElementById('filterLoco').value = '';
     document.getElementById('filterType').value = '';
@@ -766,7 +766,7 @@
 
   // ── Active filter tags ──
   function renderActiveTags() {
-    const pos  = document.getElementById('filterPosition').value;
+    const loc  = document.getElementById('filterLocation').value;
     const dia  = document.getElementById('filterDia').value;
     const loco = document.getElementById('filterLoco').value;
     const type = document.getElementById('filterType').value;
@@ -780,7 +780,7 @@
       cont.appendChild(d);
     };
     if (q)    add(`Search: "${q}"`, `clearSearch()`);
-    if (pos)  add(`Position: ${pos}`, `document.getElementById('filterPosition').value='';applyFilters()`);
+    if (loc)  add(`Location: ${loc}`, `document.getElementById('filterLocation').value='';applyFilters()`);
     if (dia)  add(`Dia: ${dia}`, `document.getElementById('filterDia').value='';applyFilters()`);
     if (loco) add(`Loco: ${loco}`, `document.getElementById('filterLoco').value='';applyFilters()`);
     if (type) add(`Type: ${type}`, `document.getElementById('filterType').value='';applyFilters()`);
@@ -806,7 +806,7 @@
         case 'approxDia':av = a.approxDia;bv = b.approxDia;break;
         case 'msu':      av = a.msu ?? -1;bv = b.msu ?? -1;break;
         case 'wdist':    av = a.wdist ?? 0;bv = b.wdist ?? 0;break;
-        case 'position': av = a.position; bv = b.position;  break;
+        case 'location': av = a.location; bv = b.location;  break;
         case 'released': av = parseDate(a.released); bv = parseDate(b.released); break;
         default: return 0;
       }
@@ -851,7 +851,7 @@
 
   function rowHTML(w) {
     const diaClass  = w.dia < 1030 ? 'dia-crit' : w.dia <= 1040 ? 'dia-warn' : w.dia >= 1071 ? 'dia-high' : 'dia-good';
-    const posCls    = { 'HR SHOP':'pos-hrshop', 'YARD':'pos-scrap', 'wheel park':'pos-wpark', 'wheel shop':'pos-wshop' }[w.position] || 'pos-hrshop';
+    const posCls    = { 'HR SHOP':'pos-hrshop', 'YARD':'pos-scrap', 'wheel park':'pos-wpark', 'wheel shop':'pos-wshop' }[w.location] || 'pos-hrshop';
     const _msuLimits  = JSON.parse(localStorage.getItem('rt_msu_limits') || '{}');
     const _msuDefault = { WAG7: 1.5, WAP7: 1.0, WAG9: 1.0 };
     const _msuLimit   = _msuLimits['msu' + w.type] !== undefined ? _msuLimits['msu' + w.type] : (_msuDefault[w.type] ?? 1.5);
@@ -879,7 +879,7 @@
       <td style="font-size:12.5px;color:var(--text-muted)">${w.released || '—'}</td>
       <td class="cell-msu ${msuClass}">${w.msu !== null ? w.msu : '—'}</td>
       <td class="${wdistClass}" style="font-size:12.5px">${w.wdist !== null ? w.wdist : '—'}</td>
-      <td><span class="pos-badge ${posCls}"><span class="pos-dot"></span>${w.position}</span></td>
+      <td><span class="pos-badge ${posCls}"><span class="pos-dot"></span>${w.location}</span></td>
       <td>
         <div class="action-btns">
           <button class="icon-btn edit" title="Edit" onclick="editWheel(${w.sl})">
@@ -897,10 +897,10 @@
   function updateChips() {
     const src = filtered;
     document.getElementById('chipTotal').textContent  = `${src.length} Total`;
-    document.getElementById('chipHR').textContent     = `${src.filter(w=>w.position==='HR SHOP').length} HR Shop`;
-    document.getElementById('chipScrap').textContent  = `${src.filter(w=>w.position==='YARD').length} Yard`;
-    document.getElementById('chipWPark').textContent  = `${src.filter(w=>w.position==='wheel park').length} Wheel Park`;
-    document.getElementById('chipWShop').textContent  = `${src.filter(w=>w.position==='wheel shop').length} Wheel Shop`;
+    document.getElementById('chipHR').textContent     = `${src.filter(w=>w.location==='HR SHOP').length} HR Shop`;
+    document.getElementById('chipScrap').textContent  = `${src.filter(w=>w.location==='YARD').length} Yard`;
+    document.getElementById('chipWPark').textContent  = `${src.filter(w=>w.location==='wheel park').length} Wheel Park`;
+    document.getElementById('chipWShop').textContent  = `${src.filter(w=>w.location==='wheel shop').length} Wheel Shop`;
   }
 
   // ── Sort icons ──
@@ -963,14 +963,14 @@
 
   // ── Export CSV ──
   function exportCSV() {
-    const headers = ['Sl','Axle No','Loco No','Wheel Dia','Profile PE','Profile CE','Approx Dia WT','Appx Profile WT','Released Date','MSU Play','Wheel Distance','Position','Remarks'];
+    const headers = ['Sl','Axle No','Loco No','Wheel Dia','Profile PE','Profile CE','Approx Dia WT','Appx Profile WT','Released Date','MSU Play','Wheel Distance','Location','Remarks'];
     const rows = filtered.map(w => [
       w.sl, w.axle, w.loco, w.dia,
       w.pePH !== null ? `${w.pePH}/${w.pePT}` : '',
       w.cePH !== null ? `${w.cePH}/${w.cePT}` : '',
       w.approxDia,
       w.appxPH !== null ? `${w.appxPH}/${w.appxPT}` : '',
-      w.released, w.msu ?? '', w.wdist ?? '', w.position, w.remarks
+      w.released, w.msu ?? '', w.wdist ?? '', w.location, w.remarks
     ].map(v => `"${v}"`).join(','));
     const csv  = [headers.join(','), ...rows].join('\n');
     const link = document.createElement('a');
@@ -1008,7 +1008,7 @@
       </div>
       <!-- Template download notice -->
       <div id="importNotice" style="padding:12px 24px;background:#f0f7ff;border-bottom:1px solid #dceaf7;font-size:12.5px;color:#1e4a7c;flex-shrink:0;">
-        <strong>Expected columns (in order):</strong> Axle No, Loco No, Type, Wheel Dia, PE P/H, PE P/T, CE P/H, CE P/T, Approx Dia, Appx P/H, Appx P/T, Released Date, MSU Play, Wheel Distance, Position, Remarks
+        <strong>Expected columns (in order):</strong> Axle No, Loco No, Type, Wheel Dia, PE P/H, PE P/T, CE P/H, CE P/T, Approx Dia, Appx P/H, Appx P/T, Released Date, MSU Play, Wheel Distance, Location, Remarks
         &nbsp;—&nbsp;<button onclick="downloadTemplate()" style="background:none;border:none;color:var(--rail-mid);font-weight:600;cursor:pointer;font-size:12.5px;text-decoration:underline;">Download Template</button>
       </div>
       <!-- Preview table -->
@@ -1082,7 +1082,7 @@
           released:  r[11] !== '' ? formatReleased(r[11]) : '',
           msu:       r[12] !== '' ? parseFloat(r[12]) : null,
           wdist:     r[13] !== '' ? parseFloat(r[13]) : null,
-          position:  String(r[14] ?? 'HR SHOP').trim() || 'HR SHOP',
+          location:  String(r[14] ?? 'HR SHOP').trim() || 'HR SHOP',
           remarks:   String(r[15] ?? '').trim(),
         });
       }
@@ -1107,7 +1107,7 @@
         document.getElementById('importCount').textContent = '';
         document.getElementById('importConfirmBtn').disabled = true;
       } else {
-        const cols = ['Sl','Axle No','Loco No','Type','Wheel Dia','PE P/H','PE P/T','CE P/H','CE P/T','Approx Dia','Appx P/H','Appx P/T','Released','MSU Play','W.Dist','Position','Remarks'];
+        const cols = ['Sl','Axle No','Loco No','Type','Wheel Dia','PE P/H','PE P/T','CE P/H','CE P/T','Approx Dia','Appx P/H','Appx P/T','Released','MSU Play','W.Dist','Location','Remarks'];
         const headHTML = cols.map(c => `<th style="padding:8px 10px;white-space:nowrap;font-size:11.5px;background:#f4f8fc;border-bottom:2px solid #dce8f2;text-align:left;color:var(--rail-blue)">${c}</th>`).join('');
         const rowsHTML = _importRows.map(w => `<tr>
           <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.sl}</td>
@@ -1125,7 +1125,7 @@
           <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.released || '—'}</td>
           <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.msu ?? '—'}</td>
           <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.wdist ?? '—'}</td>
-          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.position}</td>
+          <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7">${w.location}</td>
           <td style="padding:7px 10px;font-size:12.5px;border-bottom:1px solid #eef2f7;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${w.remarks}">${w.remarks || '—'}</td>
         </tr>`).join('');
         wrap.innerHTML = `<table style="width:100%;border-collapse:collapse;"><thead><tr>${headHTML}</tr></thead><tbody>${rowsHTML}</tbody></table>`;
@@ -1186,7 +1186,7 @@
     })();
 
     function downloadTemplate() {
-      const headers = ['Axle No','Loco No','Type','Wheel Dia','PE P/H','PE P/T','CE P/H','CE P/T','Approx Dia','Appx P/H','Appx P/T','Released Date','MSU Play','Wheel Distance','Position','Remarks'];
+      const headers = ['Axle No','Loco No','Type','Wheel Dia','PE P/H','PE P/T','CE P/H','CE P/T','Approx Dia','Appx P/H','Appx P/T','Released Date','MSU Play','Wheel Distance','Location','Remarks'];
       const sample  = ['HH-01234','27906/1','WAG7',1036,2.37,0.82,2.40,1.38,1036,2.37,0.82,'06.04.2026',0.79,1596.44,'HR SHOP',''];
       const ws = XLSX.utils.aoa_to_sheet([headers, sample]);
       const wb = XLSX.utils.book_new();
