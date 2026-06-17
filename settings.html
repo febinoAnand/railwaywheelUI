@@ -266,6 +266,32 @@
     }
     .info-note svg { flex-shrink: 0; margin-top: 1px; }
 
+    /* ── Settings Change Log ── */
+    .log-empty { padding: 32px 0; text-align: center; color: var(--text-muted); font-size: 13px; }
+    .log-timeline { display: flex; flex-direction: column; }
+    .log-entry { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid #f0f5fa; }
+    .log-entry:last-child { border-bottom: none; }
+    .log-dot-col { display: flex; flex-direction: column; align-items: center; width: 14px; flex-shrink: 0; }
+    .log-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
+    .log-dot.saved { background: #38a169; }
+    .log-dot.reset { background: var(--accent); }
+    .log-line { flex: 1; width: 2px; background: #e8eef5; margin-top: 4px; }
+    .log-body { flex: 1; min-width: 0; }
+    .log-row1 { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-bottom: 5px; }
+    .log-chip { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 6px; text-transform: uppercase; letter-spacing: .3px; }
+    .log-chip.saved { background: #f0fff4; color: #276749; }
+    .log-chip.reset { background: #fff8e8; color: #92600a; }
+    .log-group { font-size: 13px; font-weight: 700; color: var(--rail-blue); }
+    .log-user  { font-size: 12.5px; color: var(--text-muted); }
+    .log-time  { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+    .log-changes { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
+    .log-change { font-size: 12.5px; color: var(--text-muted); display: flex; align-items: center; gap: 7px; }
+    .log-field { color: var(--text-main); font-weight: 600; }
+    .val-old { color: var(--danger); text-decoration: line-through; }
+    .val-arrow { color: var(--text-muted); }
+    .val-new { color: var(--success); font-weight: 700; }
+    .log-nochange { font-size: 12.5px; color: var(--text-muted); font-style: italic; }
+
     @media (max-width: 768px) {
       :root { --sidebar-w: 0px; }
       .sidebar { display: none; }
@@ -611,6 +637,21 @@
         </div>
       </div>
 
+      <!-- Settings Change Log -->
+      <div class="settings-group">
+        <div class="settings-group-head">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="#0f3d6e" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
+          <div>
+            <h2>Settings Change Log</h2>
+            <p>Record of every save or reset made to the limits above, most recent first</p>
+          </div>
+        </div>
+        <div class="settings-group-body">
+          <div id="settingsLogEmpty" class="log-empty">No setting changes recorded yet.</div>
+          <div id="settingsLogTimeline" class="log-timeline"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -635,10 +676,80 @@
 
     const WDIST_DEFAULTS = { wdistMin: 1595.5, wdistMax: 1599.0 };
 
+    const WEAR_FIELD_LABELS = { afterRoot: 'After WT Root Wear', afterFlange: 'After WT Flange Wear', beforeRoot: 'Before WT Root Wear', beforeFlange: 'Before WT Flange Wear' };
+    const WDIST_FIELD_LABELS = { wdistMin: 'Minimum', wdistMax: 'Maximum' };
+    const typeLabel = type => type.replace(/(\d)/, ' $1');
+    const msuLabel  = key => typeLabel(key.replace('msu', ''));
+
+    let currentUserName = 'User';
+
+    // ── Settings Change Log ──
+    const DEFAULT_SETTINGS_LOG = [
+      { date: '15/06/2026', time: '10:20', user: 'A. Kumar',  group: 'Wheel Wear Limits',     action: 'saved', changes: [
+        { field: 'WAG 7 — After WT Root Wear',   oldVal: '1.5 mm', newVal: '1.6 mm' },
+        { field: 'WAG 7 — After WT Flange Wear', oldVal: '1.2 mm', newVal: '1.3 mm' },
+      ] },
+      { date: '12/06/2026', time: '14:42', user: 'R. Sharma', group: 'MSU Play Limits',       action: 'saved', changes: [
+        { field: 'WAG 7', oldVal: '1.5 mm', newVal: '1.4 mm' },
+      ] },
+      { date: '09/06/2026', time: '11:05', user: 'S. Pillai', group: 'Wheel Distance Limits', action: 'reset', changes: [
+        { field: 'Maximum', oldVal: '1599.5 mm', newVal: '1599.0 mm' },
+      ] },
+      { date: '03/06/2026', time: '16:20', user: 'D. Nair',   group: 'Wheel Wear Limits',     action: 'reset', changes: [] },
+      { date: '28/05/2026', time: '09:50', user: 'A. Kumar',  group: 'MSU Play Limits',       action: 'saved', changes: [
+        { field: 'WAP 7', oldVal: '1.0 mm', newVal: '1.1 mm' },
+        { field: 'WAG 9', oldVal: '1.0 mm', newVal: '1.2 mm' },
+      ] },
+    ];
+    let SETTINGS_LOG = JSON.parse(localStorage.getItem('rt_settings_log') || 'null') || DEFAULT_SETTINGS_LOG;
+
+    function logSettingsChange(group, action, changes) {
+      const now = new Date();
+      SETTINGS_LOG.unshift({
+        date: now.toLocaleDateString('en-GB'),
+        time: now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        user: currentUserName,
+        group, action, changes
+      });
+      SETTINGS_LOG = SETTINGS_LOG.slice(0, 50);
+      localStorage.setItem('rt_settings_log', JSON.stringify(SETTINGS_LOG));
+      renderSettingsLog();
+    }
+
+    function renderSettingsLog() {
+      const empty    = document.getElementById('settingsLogEmpty');
+      const timeline = document.getElementById('settingsLogTimeline');
+      if (!SETTINGS_LOG.length) { empty.style.display = 'block'; timeline.innerHTML = ''; return; }
+      empty.style.display = 'none';
+      timeline.innerHTML = SETTINGS_LOG.map((e, i) => {
+        const isLast = i === SETTINGS_LOG.length - 1;
+        const changesHTML = e.changes && e.changes.length
+          ? `<div class="log-changes">${e.changes.map(c => `<div class="log-change"><span class="log-field">${c.field}</span><span class="val-old">${c.oldVal}</span><span class="val-arrow">→</span><span class="val-new">${c.newVal}</span></div>`).join('')}</div>`
+          : `<div class="log-nochange">No values changed.</div>`;
+        return `
+          <div class="log-entry">
+            <div class="log-dot-col">
+              <div class="log-dot ${e.action}"></div>
+              ${!isLast ? '<div class="log-line"></div>' : ''}
+            </div>
+            <div class="log-body">
+              <div class="log-row1">
+                <span class="log-chip ${e.action}">${e.action === 'saved' ? 'Saved' : 'Reset to Defaults'}</span>
+                <span class="log-group">${e.group}</span>
+                <span class="log-user">${e.user}</span>
+                <span class="log-time">${e.date} · ${e.time}</span>
+              </div>
+              ${changesHTML}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
     (function init() {
       const u = sessionStorage.getItem('rt_user');
       if (!u) { window.location.href = 'index.html'; return; }
       const user = JSON.parse(u);
+      currentUserName = user.name || 'User';
       document.getElementById('topUser').textContent   = user.name  || 'User';
       document.getElementById('topRole').textContent   = user.role  || 'Inspector';
       document.getElementById('topAvatar').textContent = (user.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase();
@@ -662,6 +773,8 @@
         const el = document.getElementById(k);
         if (el) el.value = savedWdist[k] !== undefined ? savedWdist[k] : WDIST_DEFAULTS[k];
       });
+
+      renderSettingsLog();
     })();
 
     function switchWearTab(type) {
@@ -670,7 +783,9 @@
     }
 
     function saveSettings() {
+      const oldRaw = JSON.parse(localStorage.getItem('rt_wear_limits') || '{}');
       const vals = {};
+      const changes = [];
       let valid = true;
       WEAR_TYPES.forEach(type => {
         vals[type] = {};
@@ -678,57 +793,94 @@
           const v = parseFloat(document.getElementById(`${field}_${type}`).value);
           if (isNaN(v) || v < 0) { valid = false; return; }
           vals[type][field] = v;
+          const oldV = (oldRaw[type] && oldRaw[type][field] !== undefined) ? oldRaw[type][field] : WEAR_DEFAULTS[type][field];
+          if (oldV !== v) changes.push({ field: `${typeLabel(type)} — ${WEAR_FIELD_LABELS[field]}`, oldVal: `${oldV} mm`, newVal: `${v} mm` });
         });
       });
       if (!valid) { showToast('Please enter valid positive numbers.', false); return; }
       localStorage.setItem('rt_wear_limits', JSON.stringify(vals));
       showToast('Wear limit settings saved.', true);
+      logSettingsChange('Wheel Wear Limits', 'saved', changes);
     }
 
     function resetDefaults() {
+      const oldRaw = JSON.parse(localStorage.getItem('rt_wear_limits') || '{}');
+      const changes = [];
       WEAR_TYPES.forEach(type => {
         WEAR_FIELDS.forEach(field => {
-          document.getElementById(`${field}_${type}`).value = WEAR_DEFAULTS[type][field];
+          const oldV = (oldRaw[type] && oldRaw[type][field] !== undefined) ? oldRaw[type][field] : WEAR_DEFAULTS[type][field];
+          const newV = WEAR_DEFAULTS[type][field];
+          document.getElementById(`${field}_${type}`).value = newV;
+          if (oldV !== newV) changes.push({ field: `${typeLabel(type)} — ${WEAR_FIELD_LABELS[field]}`, oldVal: `${oldV} mm`, newVal: `${newV} mm` });
         });
       });
       localStorage.removeItem('rt_wear_limits');
       showToast('Wear limits reset to defaults.', true);
+      logSettingsChange('Wheel Wear Limits', 'reset', changes);
     }
 
     function saveWdistSettings() {
+      const oldRaw = JSON.parse(localStorage.getItem('rt_wdist_limits') || '{}');
       const min = parseFloat(document.getElementById('wdistMin').value);
       const max = parseFloat(document.getElementById('wdistMax').value);
       if (isNaN(min) || isNaN(max) || min < 0 || max <= min) {
         showToast('Enter valid min/max values (max must be greater than min).', false); return;
       }
-      localStorage.setItem('rt_wdist_limits', JSON.stringify({ wdistMin: min, wdistMax: max }));
+      const newVals = { wdistMin: min, wdistMax: max };
+      const changes = [];
+      ['wdistMin','wdistMax'].forEach(k => {
+        const oldV = oldRaw[k] !== undefined ? oldRaw[k] : WDIST_DEFAULTS[k];
+        if (oldV !== newVals[k]) changes.push({ field: WDIST_FIELD_LABELS[k], oldVal: `${oldV} mm`, newVal: `${newVals[k]} mm` });
+      });
+      localStorage.setItem('rt_wdist_limits', JSON.stringify(newVals));
       showToast('Wheel distance limits saved.', true);
+      logSettingsChange('Wheel Distance Limits', 'saved', changes);
     }
 
     function resetWdistDefaults() {
-      document.getElementById('wdistMin').value = WDIST_DEFAULTS.wdistMin;
-      document.getElementById('wdistMax').value = WDIST_DEFAULTS.wdistMax;
+      const oldRaw = JSON.parse(localStorage.getItem('rt_wdist_limits') || '{}');
+      const changes = [];
+      ['wdistMin','wdistMax'].forEach(k => {
+        const oldV = oldRaw[k] !== undefined ? oldRaw[k] : WDIST_DEFAULTS[k];
+        const newV = WDIST_DEFAULTS[k];
+        document.getElementById(k).value = newV;
+        if (oldV !== newV) changes.push({ field: WDIST_FIELD_LABELS[k], oldVal: `${oldV} mm`, newVal: `${newV} mm` });
+      });
       localStorage.removeItem('rt_wdist_limits');
       showToast('Wheel distance limits reset to defaults.', true);
+      logSettingsChange('Wheel Distance Limits', 'reset', changes);
     }
 
     function saveMsuSettings() {
+      const oldRaw = JSON.parse(localStorage.getItem('rt_msu_limits') || '{}');
       const vals = {};
+      const changes = [];
       let valid = true;
       MSU_KEYS.forEach(k => {
         const v = parseFloat(document.getElementById(k).value);
         if (isNaN(v) || v < 0) { valid = false; return; }
         vals[k] = v;
+        const oldV = oldRaw[k] !== undefined ? oldRaw[k] : MSU_DEFAULTS[k];
+        if (oldV !== v) changes.push({ field: msuLabel(k), oldVal: `${oldV} mm`, newVal: `${v} mm` });
       });
       if (!valid) { showToast('Please enter valid positive numbers.', false); return; }
       localStorage.setItem('rt_msu_limits', JSON.stringify(vals));
       showToast('MSU play settings saved.', true);
+      logSettingsChange('MSU Play Limits', 'saved', changes);
     }
 
     function resetMsuDefaults() {
-      MSU_KEYS.forEach(k => { document.getElementById(k).value = MSU_DEFAULTS[k]; });
+      const oldRaw = JSON.parse(localStorage.getItem('rt_msu_limits') || '{}');
+      const changes = [];
+      MSU_KEYS.forEach(k => {
+        const oldV = oldRaw[k] !== undefined ? oldRaw[k] : MSU_DEFAULTS[k];
+        const newV = MSU_DEFAULTS[k];
+        document.getElementById(k).value = newV;
+        if (oldV !== newV) changes.push({ field: msuLabel(k), oldVal: `${oldV} mm`, newVal: `${newV} mm` });
+      });
       localStorage.removeItem('rt_msu_limits');
       showToast('MSU limits reset to defaults.', true);
+      logSettingsChange('MSU Play Limits', 'reset', changes);
     }
 
     function logout() {
