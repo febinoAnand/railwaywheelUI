@@ -220,6 +220,7 @@
     .cell-msu   { font-size: 13px; }
     .msu-high   { color: var(--danger); font-weight: 700; }
     .wdist-out  { color: var(--danger); font-weight: 700; }
+    .profile-cross { color: var(--danger); font-weight: 700; }
 
     /* position badge */
     .pos-badge {
@@ -860,6 +861,13 @@
     const _wdMin      = _wdLimits.wdistMin !== undefined ? parseFloat(_wdLimits.wdistMin) : 1595.5;
     const _wdMax      = _wdLimits.wdistMax !== undefined ? parseFloat(_wdLimits.wdistMax) : 1599.0;
     const wdistClass  = w.wdist !== null && (w.wdist < _wdMin || w.wdist > _wdMax) ? 'wdist-out' : '';
+    const _wearLimits  = JSON.parse(localStorage.getItem('rt_wear_limits') || '{}');
+    const _wearDefault = { afterRoot: 1.5, afterFlange: 1.2 };
+    const _typeLimits  = (_wearLimits[w.type] && typeof _wearLimits[w.type] === 'object') ? _wearLimits[w.type] : {};
+    const _afterRoot   = _typeLimits.afterRoot   !== undefined ? parseFloat(_typeLimits.afterRoot)   : _wearDefault.afterRoot;
+    const _afterFlange = _typeLimits.afterFlange !== undefined ? parseFloat(_typeLimits.afterFlange) : _wearDefault.afterFlange;
+    const peClass   = w.pePH !== null && (w.pePH > _afterRoot || w.pePT > _afterFlange) ? 'profile-cross' : '';
+    const ceClass   = w.cePH !== null && (w.cePH > _afterRoot || w.cePT > _afterFlange) ? 'profile-cross' : '';
     const peFmt     = w.pePH !== null ? `${w.pePH}/${w.pePT}` : '—';
     const ceFmt     = w.cePH !== null ? `${w.cePH}/${w.cePT}` : '—';
     const appxFmt   = w.appxPH !== null ? `${w.appxPH}/${w.appxPT}` : '—';
@@ -872,8 +880,8 @@
       <td class="cell-loco">${w.loco}</td>
       <td><span class="type-badge ${typeCls}">${w.type || '—'}</span></td>
       <td class="cell-dia ${diaClass}">${w.dia}</td>
-      <td class="cell-profile">${peFmt}</td>
-      <td class="cell-profile">${ceFmt}</td>
+      <td class="cell-profile ${peClass}" title="${peClass ? 'Exceeds after-WT wear limit (Root ' + _afterRoot + 'mm / Flange ' + _afterFlange + 'mm)' : ''}">${peFmt}</td>
+      <td class="cell-profile ${ceClass}" title="${ceClass ? 'Exceeds after-WT wear limit (Root ' + _afterRoot + 'mm / Flange ' + _afterFlange + 'mm)' : ''}">${ceFmt}</td>
       <td class="cell-dia ${diaClass}" style="font-size:13px;font-weight:600">${w.approxDia}</td>
       <td class="cell-profile">${appxFmt}</td>
       <td style="font-size:12.5px;color:var(--text-muted)">${w.released || '—'}</td>
