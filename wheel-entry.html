@@ -307,6 +307,51 @@
     .pill-wpark:has(input:checked)     { border-color: #805ad5 !important; background: #faf5ff !important; color: #805ad5 !important; }
     .pill-wshop:has(input:checked)     { border-color: var(--accent) !important; background: #fffbeb !important; color: #92600a !important; }
 
+    /* Wheel location field label row + manage button */
+    .field-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .field-label-row label { margin-bottom: 0; }
+    .manage-loc-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: none; border: none; cursor: pointer;
+      font-size: 12px; font-weight: 600; color: var(--rail-mid);
+      padding: 2px 4px; border-radius: 6px; transition: background .15s;
+      font-family: inherit;
+    }
+    .manage-loc-btn:hover { background: #e8f0f9; }
+
+    /* ── Manage Locations Modal ── */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 300; display: none; align-items: center; justify-content: center; }
+    .overlay.open { display: flex; }
+    .modal { background: var(--white); border-radius: 14px; width: 460px; max-width: 95vw; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,.25); animation: fadeUp .2s ease; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .modal-head { padding: 18px 22px 14px; border-bottom: 1px solid #e8eef5; display: flex; align-items: flex-start; justify-content: space-between; }
+    .modal-head-text h3 { font-size: 15.5px; font-weight: 700; color: var(--text-main); }
+    .modal-head-text p { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+    .modal-close { background: #f0f4f8; border: none; cursor: pointer; color: var(--text-muted); font-size: 17px; line-height: 1; padding: 4px 9px; border-radius: 7px; transition: background .15s, color .15s; }
+    .modal-close:hover { background: #e2e8f0; color: var(--text-main); }
+    .modal-body { flex: 1; overflow-y: auto; padding: 18px 22px; }
+    .modal-foot { padding: 14px 22px; border-top: 1px solid #e8eef5; display: flex; justify-content: flex-end; gap: 8px; }
+
+    .loc-add-row { display: flex; gap: 8px; margin-bottom: 16px; }
+    .loc-add-row input { flex: 1; padding: 9px 12px; border: 1.5px solid #d0dde8; border-radius: 8px; font-size: 13.5px; font-family: inherit; background: #f8fafc; outline: none; transition: border-color .15s, box-shadow .15s; }
+    .loc-add-row input:focus { border-color: var(--rail-mid); box-shadow: 0 0 0 3px rgba(15,61,110,.1); background: #fff; }
+
+    .loc-manager-list { display: flex; flex-direction: column; gap: 6px; max-height: 280px; }
+    .loc-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1.5px solid #e8eef5; border-radius: 8px; background: #f8fafc; }
+    .loc-row-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text-main); }
+    .loc-row input { flex: 1; padding: 6px 9px; border: 1.5px solid var(--rail-mid); border-radius: 6px; font-size: 13px; font-family: inherit; outline: none; }
+    .loc-row-btns { display: flex; gap: 4px; flex-shrink: 0; }
+    .loc-icon-btn { width: 26px; height: 26px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+    .loc-icon-btn.edit   { background: #e8f0f9; color: var(--rail-mid); }
+    .loc-icon-btn.edit:hover   { background: #d3e3f5; }
+    .loc-icon-btn.save   { background: #f0fff4; color: #276749; }
+    .loc-icon-btn.save:hover   { background: #c6f6d5; }
+    .loc-icon-btn.cancel { background: #f0f4f8; color: var(--text-muted); }
+    .loc-icon-btn.cancel:hover { background: #e2e8f0; }
+    .loc-icon-btn.del    { background: #fff5f5; color: var(--danger); }
+    .loc-icon-btn.del:hover    { background: #fed7d7; }
+    .loc-empty { font-size: 12.5px; color: var(--text-muted); text-align: center; padding: 16px 0; }
+
     /* divider */
     .section-divider {
       border: none;
@@ -718,29 +763,14 @@
           <div class="card-body">
 
             <div class="field" style="margin-bottom:24px">
-              <label>Wheel Location <span class="req">*</span></label>
-              <div class="location-pills">
-                <label class="pill-hrshop">
-                  <input type="radio" name="wheelLocation" value="HR SHOP" required />
-                  HR Shop
-                </label>
-                <label class="pill-scrap">
-                  <input type="radio" name="wheelLocation" value="YARD" />
-                  Yard
-                </label>
-                <label class="pill-wpark">
-                  <input type="radio" name="wheelLocation" value="wheel park" />
-                  Wheel Park
-                </label>
-                <label class="pill-wshop">
-                  <input type="radio" name="wheelLocation" value="wheel shop" />
-                  Wheel Shop
-                </label>
-                <label>
-                  <input type="radio" name="wheelLocation" value="Other" />
-                  Other
-                </label>
+              <div class="field-label-row">
+                <label>Wheel Location <span class="req">*</span></label>
+                <button type="button" class="manage-loc-btn" onclick="openLocManager()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/></svg>
+                  Manage
+                </button>
               </div>
+              <div class="location-pills" id="locationPills"></div>
             </div>
 
             <div class="field">
@@ -835,6 +865,29 @@
     </div><!-- /.page-content -->
   </div><!-- /.main -->
 
+  <!-- Manage Wheel Locations Modal -->
+  <div class="overlay" id="locOverlay">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-head-text">
+          <h3>Manage Wheel Locations</h3>
+          <p>Add, rename, or remove the location options shown below.</p>
+        </div>
+        <button type="button" class="modal-close" onclick="closeLocManager()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="loc-add-row">
+          <input type="text" id="newLocInput" placeholder="e.g. Lifting Bay" maxlength="40" />
+          <button type="button" class="btn btn-primary" onclick="addLocation()">Add</button>
+        </div>
+        <div id="locManagerList" class="loc-manager-list"></div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost" onclick="closeLocManager()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast notification -->
   <div class="toast" id="toast">
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/></svg>
@@ -866,6 +919,127 @@
     { sl:20, axle:'HH-48-35',  loco:'GOC/TPJ', type:'WAG9', dia:1093, pePH:0.00, pePT:0.00, cePH:0.00, cePT:0.00, approxDia:1093, appxPH:0.00, appxPT:0.00, released:'20.03.2026', msu:0.10,  wdist:1595.70, location:'HR SHOP',    remarks:'' },
     { sl:21, axle:'HH 52-91',  loco:'27471/4', type:'WAG7', dia:1011, pePH:null, pePT:null, cePH:null, cePT:null,  approxDia:1011, appxPH:null, appxPT:null, released:'',           msu:null,  wdist:null,    location:'wheel shop',  remarks:'' },
   ];
+
+  // ── Wheel Locations CRUD ──
+  const DEFAULT_LOCATIONS = [
+    { value: 'HR SHOP',    label: 'HR Shop',    cls: 'pill-hrshop' },
+    { value: 'YARD',       label: 'Yard',       cls: 'pill-scrap'  },
+    { value: 'wheel park', label: 'Wheel Park', cls: 'pill-wpark'  },
+    { value: 'wheel shop', label: 'Wheel Shop', cls: 'pill-wshop'  },
+  ];
+  let LOCATIONS = JSON.parse(localStorage.getItem('rt_wheel_locations') || 'null') || DEFAULT_LOCATIONS;
+  let editingLocIndex = null;
+
+  function saveLocations() {
+    localStorage.setItem('rt_wheel_locations', JSON.stringify(LOCATIONS));
+  }
+
+  function renderLocationPills() {
+    const checked = document.querySelector('input[name="wheelLocation"]:checked');
+    const selectedValue = checked ? checked.value : null;
+    const wrap = document.getElementById('locationPills');
+    wrap.innerHTML = LOCATIONS.map((loc, i) => `
+      <label class="${loc.cls || ''}">
+        <input type="radio" name="wheelLocation" value="${loc.value}" ${i === 0 ? 'required' : ''} ${loc.value === selectedValue ? 'checked' : ''} />
+        ${loc.label}
+      </label>`).join('');
+  }
+  renderLocationPills();
+
+  function openLocManager() {
+    editingLocIndex = null;
+    renderLocManagerList();
+    document.getElementById('newLocInput').value = '';
+    document.getElementById('locOverlay').classList.add('open');
+  }
+  function closeLocManager() {
+    document.getElementById('locOverlay').classList.remove('open');
+  }
+
+  function renderLocManagerList() {
+    const list = document.getElementById('locManagerList');
+    if (!LOCATIONS.length) {
+      list.innerHTML = '<div class="loc-empty">No locations yet — add one above.</div>';
+      return;
+    }
+    list.innerHTML = LOCATIONS.map((loc, i) => {
+      if (i === editingLocIndex) {
+        return `
+          <div class="loc-row">
+            <input type="text" id="editLocInput" value="${loc.label}" maxlength="40" />
+            <div class="loc-row-btns">
+              <button type="button" class="loc-icon-btn save" title="Save" onclick="saveEditLocation(${i})">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16"><path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/></svg>
+              </button>
+              <button type="button" class="loc-icon-btn cancel" title="Cancel" onclick="cancelEditLocation()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+              </button>
+            </div>
+          </div>`;
+      }
+      return `
+        <div class="loc-row">
+          <span class="loc-row-name">${loc.label}</span>
+          <div class="loc-row-btns">
+            <button type="button" class="loc-icon-btn edit" title="Rename" onclick="startEditLocation(${i})">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/></svg>
+            </button>
+            <button type="button" class="loc-icon-btn del" title="Delete" onclick="deleteLocation(${i})">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function addLocation() {
+    const input = document.getElementById('newLocInput');
+    const name = input.value.trim();
+    if (!name) return;
+    if (LOCATIONS.some(l => l.label.toLowerCase() === name.toLowerCase())) {
+      showToast('That location already exists.', false);
+      return;
+    }
+    LOCATIONS.push({ value: name, label: name, cls: '' });
+    saveLocations();
+    input.value = '';
+    renderLocManagerList();
+    renderLocationPills();
+    showToast('Location added.', true);
+  }
+
+  function startEditLocation(i) {
+    editingLocIndex = i;
+    renderLocManagerList();
+    document.getElementById('editLocInput')?.focus();
+  }
+  function cancelEditLocation() {
+    editingLocIndex = null;
+    renderLocManagerList();
+  }
+  function saveEditLocation(i) {
+    const name = document.getElementById('editLocInput').value.trim();
+    if (!name) return;
+    if (LOCATIONS.some((l, idx) => idx !== i && l.label.toLowerCase() === name.toLowerCase())) {
+      showToast('That location already exists.', false);
+      return;
+    }
+    LOCATIONS[i] = { ...LOCATIONS[i], value: name, label: name };
+    saveLocations();
+    editingLocIndex = null;
+    renderLocManagerList();
+    renderLocationPills();
+    showToast('Location updated.', true);
+  }
+
+  function deleteLocation(i) {
+    if (!confirm(`Remove "${LOCATIONS[i].label}" from the location list?`)) return;
+    LOCATIONS.splice(i, 1);
+    saveLocations();
+    renderLocManagerList();
+    renderLocationPills();
+    showToast('Location removed.', true);
+  }
 
   // ── Populate form when editing ──
   (function populateForm() {
