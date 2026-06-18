@@ -63,6 +63,7 @@
     .toolbar-actions { display:flex; gap:8px; align-items:flex-end; margin-left:auto; }
     .btn { padding:9px 16px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; border:none; display:inline-flex; align-items:center; gap:6px; transition:opacity .18s,transform .1s; white-space:nowrap; }
     .btn:active { transform:scale(.97); }
+    .btn:disabled { opacity:.45; cursor:not-allowed; }
     .btn-ghost   { background:transparent; color:var(--text-muted); border:1.5px solid #d0dde8; }
     .btn-ghost:hover { background:#e8eef5; }
     .btn-primary { background:linear-gradient(135deg,var(--rail-mid),var(--rail-blue)); color:#fff; }
@@ -81,6 +82,8 @@
 
     .wheel-cell .w-axle { font-weight:600; font-size:13px; }
     .wheel-cell .w-loco { font-size:11.5px; color:var(--text-muted); }
+    .swap-tag { display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:#92600a; background:#fff8e8; border:1px solid #fbd38d; border-radius:5px; padding:1px 6px; margin-left:5px; vertical-align:middle; }
+    .w-orig { font-size:11px; color:#b0c0cc; font-style:italic; }
 
     /* Destination badge */
     .dest-badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:6px; font-size:11.5px; font-weight:700; }
@@ -92,6 +95,9 @@
     .btn-sm { padding:6px 12px; font-size:12px; font-weight:700; border-radius:7px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; transition:background .15s; }
     .btn-sm.receive { background:#f0fff4; color:#276749; }
     .btn-sm.receive:hover { background:#c6f6d5; }
+    .btn-sm.undo { background:#fff5f5; color:var(--danger); }
+    .btn-sm.undo:hover { background:#fed7d7; }
+    .action-btns-sm { display:flex; gap:6px; flex-wrap:wrap; }
 
     /* Status pill (report) */
     .status-pill { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700; }
@@ -121,6 +127,9 @@
     .overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:300; display:none; align-items:center; justify-content:center; }
     .overlay.open { display:flex; }
     .modal { background:var(--white); border-radius:14px; width:520px; max-width:95vw; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,.25); animation:fadeUp .22s ease; }
+    .modal.modal-lg { width:680px; }
+    .form-section-label { grid-column:span 2; font-size:11.5px; font-weight:700; color:var(--rail-mid); text-transform:uppercase; letter-spacing:.5px; margin-top:6px; padding-top:10px; border-top:1px solid #eef2f7; }
+    .form-section-label:first-child { margin-top:0; padding-top:0; border-top:none; }
     @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
     .modal-head { padding:20px 24px 16px; border-bottom:1px solid #e8eef5; display:flex; align-items:flex-start; justify-content:space-between; background:var(--white); border-radius:14px 14px 0 0; }
     .modal-head-text h3 { font-size:16px; font-weight:700; color:var(--text-main); }
@@ -143,9 +152,17 @@
     .field.has-error .field-error { display:block; }
 
     /* Receive info summary */
-    .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:9px; padding:14px 16px; margin-bottom:18px; }
+    .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; background:#fff; border:1.5px solid #e2e8f0; border-radius:9px; padding:12px 14px; }
     .info-label { color:var(--text-muted); font-weight:600; text-transform:uppercase; font-size:10.5px; letter-spacing:.4px; margin-bottom:2px; }
     .info-value { font-weight:700; color:var(--text-main); font-size:13.5px; }
+
+    /* Confirmation callout + checkbox (used on both Send and Receive) */
+    .confirm-callout { display:flex; gap:10px; align-items:flex-start; background:#fff8e8; border:1.5px solid #fbd38d; border-radius:10px; padding:14px 16px; margin-bottom:18px; color:#92600a; }
+    .confirm-callout svg { flex-shrink:0; margin-top:1px; }
+    .confirm-callout-title { font-size:13px; font-weight:700; margin-bottom:8px; }
+    .confirm-callout-empty { font-size:12.5px; font-style:italic; color:#a9772f; }
+    .confirm-check { display:flex; align-items:center; gap:8px; margin-top:18px; padding:12px 14px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:9px; font-size:13px; font-weight:600; color:var(--text-main); cursor:pointer; }
+    .confirm-check input { width:16px; height:16px; cursor:pointer; accent-color:var(--rail-mid); }
 
     /* Toast */
     .toast { position:fixed; bottom:24px; right:24px; background:var(--rail-blue); color:#fff; padding:12px 18px; border-radius:10px; font-size:13.5px; box-shadow:0 6px 24px rgba(0,0,0,.2); display:none; align-items:center; gap:10px; z-index:500; animation:slideIn .2s ease; }
@@ -353,6 +370,7 @@
                 <th>Received Date</th>
                 <th>Status</th>
                 <th>Remarks</th>
+                <th style="cursor:default">Actions</th>
               </tr>
             </thead>
             <tbody id="reportTableBody"></tbody>
@@ -385,7 +403,7 @@
         <div class="form-grid">
           <div class="field span2">
             <label>Wheel *</label>
-            <select id="sendWheelSl"></select>
+            <select id="sendWheelSl" onchange="updateSendPreview()"></select>
             <span class="field-error" id="sendWheelSl-err">Please select a wheel.</span>
           </div>
           <div class="field">
@@ -407,45 +425,127 @@
             <textarea id="sendRemarks" rows="3" placeholder="e.g. Routine wheel turning"></textarea>
           </div>
         </div>
+
+        <div class="confirm-callout">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+          <div style="flex:1">
+            <div class="confirm-callout-title">Double-check this is the right wheel before sending</div>
+            <div id="sendPreviewEmpty" class="confirm-callout-empty">Select a wheel above to see its details here.</div>
+            <div class="info-grid" id="sendPreviewGrid" style="display:none">
+              <div><div class="info-label">Axle No</div><div class="info-value" id="sendPrevAxle">—</div></div>
+              <div><div class="info-label">Loco No</div><div class="info-value" id="sendPrevLoco">—</div></div>
+              <div><div class="info-label">Loco Type</div><div class="info-value" id="sendPrevType">—</div></div>
+            </div>
+          </div>
+        </div>
+
+        <label class="confirm-check">
+          <input type="checkbox" id="sendConfirmCheck" onchange="toggleSendSubmit()" />
+          I've verified this is the correct wheel to send.
+        </label>
       </div>
       <div class="modal-foot">
         <button class="btn btn-ghost" onclick="closeSend()">Cancel</button>
-        <button class="btn btn-primary" onclick="submitSend()">Send Wheel</button>
+        <button class="btn btn-primary" id="confirmSendBtn" onclick="submitSend()" disabled>Send Wheel</button>
       </div>
     </div>
   </div>
 
   <!-- Receive Wheel Modal -->
   <div class="overlay" id="receiveOverlay">
-    <div class="modal">
+    <div class="modal modal-lg">
       <div class="modal-head">
         <div class="modal-head-text">
           <h3>Receive Wheel</h3>
-          <p>Confirm the wheel has returned from GOC or LW/PER.</p>
+          <p>The wheel returning from GOC or LW/PER may have a different axle — enter its actual details below.</p>
         </div>
         <button class="modal-close" onclick="closeReceive()">×</button>
       </div>
       <div class="modal-body">
-        <div class="info-grid">
-          <div><div class="info-label">Wheel</div><div class="info-value" id="recWheel">—</div></div>
-          <div><div class="info-label">Destination</div><div class="info-value" id="recDest">—</div></div>
-          <div><div class="info-label">Sent Date</div><div class="info-value" id="recSendDate">—</div></div>
+        <div class="confirm-callout">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+          <div style="flex:1">
+            <div class="confirm-callout-title">Double-check this is the right transfer before continuing</div>
+            <div class="info-grid">
+              <div><div class="info-label">Originally Sent As</div><div class="info-value" id="recWheel">—</div></div>
+              <div><div class="info-label">Destination</div><div class="info-value" id="recDest">—</div></div>
+              <div><div class="info-label">Sent Date</div><div class="info-value" id="recSendDate">—</div></div>
+            </div>
+          </div>
         </div>
         <div class="form-grid">
-          <div class="field span2">
+
+          <div class="form-section-label">Received Wheel Identification</div>
+          <div class="field">
+            <label>Axle No *</label>
+            <input type="text" id="recAxle" placeholder="e.g. HH 34-63" />
+            <span class="field-error" id="recAxle-err">Axle No is required.</span>
+          </div>
+          <div class="field">
+            <label>Loco No *</label>
+            <input type="text" id="recLoco" placeholder="e.g. 27497/5" />
+            <span class="field-error" id="recLoco-err">Loco No is required.</span>
+          </div>
+          <div class="field">
+            <label>Loco Type</label>
+            <select id="recType">
+              <option value="WAP5">WAP 5</option>
+              <option value="WAG7">WAG 7</option>
+              <option value="WAP7">WAP 7</option>
+              <option value="WAG9">WAG 9</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Wheel Dia (mm)</label>
+            <input type="number" id="recDia" step="1" placeholder="e.g. 1028" />
+          </div>
+
+          <div class="form-section-label">Profile Measurements (mm)</div>
+          <div class="field">
+            <label>Profile PE — Height / Thickness</label>
+            <input type="number" id="recPePH" step="0.01" placeholder="height" />
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <input type="number" id="recPePT" step="0.01" placeholder="thickness" />
+          </div>
+          <div class="field">
+            <label>Profile CE — Height / Thickness</label>
+            <input type="number" id="recCePH" step="0.01" placeholder="height" />
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <input type="number" id="recCePT" step="0.01" placeholder="thickness" />
+          </div>
+          <div class="field">
+            <label>MSU Play (mm)</label>
+            <input type="number" id="recMsu" step="0.01" placeholder="e.g. 1.2" />
+          </div>
+          <div class="field">
+            <label>Wheel Distance (mm)</label>
+            <input type="number" id="recWdist" step="0.01" placeholder="e.g. 1597.30" />
+          </div>
+
+          <div class="form-section-label">Receipt Details</div>
+          <div class="field">
             <label>Receive Date *</label>
             <input type="date" id="recDate" />
             <span class="field-error" id="recDate-err">Receive date is required.</span>
           </div>
-          <div class="field span2">
+          <div class="field">
             <label>Condition / Remarks</label>
-            <textarea id="recRemarks" rows="3" placeholder="e.g. Wheel turned, profile within limits"></textarea>
+            <input type="text" id="recRemarks" placeholder="e.g. Wheel turned, profile within limits" />
           </div>
         </div>
+
+        <label class="confirm-check">
+          <input type="checkbox" id="recConfirmCheck" onchange="toggleReceiveSubmit()" />
+          I've verified this is the correct wheel / transfer record.
+        </label>
       </div>
       <div class="modal-foot">
         <button class="btn btn-ghost" onclick="closeReceive()">Cancel</button>
-        <button class="btn btn-primary" onclick="confirmReceive()">Mark Received</button>
+        <button class="btn btn-primary" id="confirmReceiveBtn" onclick="confirmReceive()" disabled>Mark Received</button>
       </div>
     </div>
   </div>
@@ -482,10 +582,12 @@
 
   // ── Transfer log (seed data) — a wheel can be sent and received more than once ──
   let TRANSFERS = [
-    { id:1, sl:2,  destination:'GOC',    sendDate:'2026-05-20', sendRemarks:'Routine wheel turning', receiveDate:'2026-06-02', recRemarks:'Profile within limits.' },
+    { id:1, sl:2,  destination:'GOC',    sendDate:'2026-05-20', sendRemarks:'Routine wheel turning', receiveDate:'2026-06-02', recRemarks:'Profile within limits.',
+      recAxle:'HH-80-39', recLoco:'27906/4', recType:'WAG7', recDia:1031, recPePH:1.20, recPePT:0.60, recCePH:1.10, recCePT:0.40, recMsu:0.75, recWdist:1597.10 },
     { id:2, sl:5,  destination:'LW/PER', sendDate:'2026-06-01', sendRemarks:'Profile correction',     receiveDate:null,        recRemarks:'' },
     { id:3, sl:9,  destination:'GOC',    sendDate:'2026-06-10', sendRemarks:'Flange thickness check', receiveDate:null,        recRemarks:'' },
-    { id:4, sl:13, destination:'LW/PER', sendDate:'2026-05-28', sendRemarks:'',                       receiveDate:'2026-06-08', recRemarks:'Returned in good condition.' },
+    { id:4, sl:13, destination:'LW/PER', sendDate:'2026-05-28', sendRemarks:'',                       receiveDate:'2026-06-08', recRemarks:'Wheelset swapped at LW/PER — returned with a different axle.',
+      recAxle:'HH-99-12', recLoco:'27472/9', recType:'WAP7', recDia:1048, recPePH:1.05, recPePT:0.50, recCePH:0.95, recCePT:0.35, recMsu:0.60, recWdist:1597.85 },
     { id:5, sl:2,  destination:'LW/PER', sendDate:'2026-06-12', sendRemarks:'Re-sent for re-profiling after defect found', receiveDate:null, recRemarks:'' },
   ];
   let nextId = TRANSFERS.length + 1;
@@ -526,10 +628,16 @@
           <td>${fmtDate(t.sendDate)}</td>
           <td class="remarks-cell">${t.sendRemarks || '—'}</td>
           <td>
-            <button class="btn-sm receive" onclick="openReceive(${t.id})">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v9.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 1 1 .708-.708L7.5 11.293V1.5A.5.5 0 0 1 8 1z"/></svg>
-              Receive
-            </button>
+            <div class="action-btns-sm">
+              <button class="btn-sm receive" onclick="openReceive(${t.id})">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v9.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 1 1 .708-.708L7.5 11.293V1.5A.5.5 0 0 1 8 1z"/></svg>
+                Receive
+              </button>
+              <button class="btn-sm undo" onclick="cancelSend(${t.id})" title="Sent the wrong wheel? Cancel this dispatch.">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+                Cancel
+              </button>
+            </div>
           </td>
         </tr>`;
     }).join('');
@@ -569,7 +677,7 @@
         if (stat && st !== stat) return false;
         if (from && t.sendDate < from) return false;
         if (to   && t.sendDate > to)   return false;
-        if (q && !`${t.wheel.axle} ${t.wheel.loco}`.toLowerCase().includes(q)) return false;
+        if (q && !`${t.wheel.axle} ${t.wheel.loco} ${t.recAxle || ''} ${t.recLoco || ''}`.toLowerCase().includes(q)) return false;
         return true;
       })
       .sort((a, b) => b.id - a.id);
@@ -593,14 +701,22 @@
       const statCls = out ? 'status-out' : 'status-received';
       const statLbl = out ? 'Out' : 'Received';
       const remarks = out ? (t.sendRemarks || '—') : (t.recRemarks || t.sendRemarks || '—');
+      const swapped = !out && t.recAxle && t.recAxle !== t.wheel.axle;
+      const wheelCell = !out && t.recAxle
+        ? `<div class="w-axle">${t.recAxle}${swapped ? ' <span class="swap-tag">swapped</span>' : ''}</div><div class="w-loco">${t.recLoco || '—'} · ${t.recType || t.wheel.type}${swapped ? `<br><span class="w-orig">was ${t.wheel.axle} (${t.wheel.loco})</span>` : ''}</div>`
+        : `<div class="w-axle">${t.wheel.axle}</div><div class="w-loco">${t.wheel.loco} · ${t.wheel.type}</div>`;
+      const action = out
+        ? `<button class="btn-sm undo" onclick="cancelSend(${t.id})" title="Sent the wrong wheel? Cancel this dispatch.">Cancel</button>`
+        : `<button class="btn-sm undo" onclick="undoReceive(${t.id})" title="Wrongly marked as received? Revert it back to Out.">Undo</button>`;
       return `
         <tr>
-          <td class="wheel-cell"><div class="w-axle">${t.wheel.axle}</div><div class="w-loco">${t.wheel.loco} · ${t.wheel.type}</div></td>
+          <td class="wheel-cell">${wheelCell}</td>
           <td><span class="dest-badge ${destCls}">${t.destination}</span></td>
           <td>${fmtDate(t.sendDate)}</td>
           <td>${fmtDate(t.receiveDate)}</td>
           <td><span class="status-pill ${statCls}"><span class="status-dot"></span>${statLbl}</span></td>
           <td class="remarks-cell">${remarks}</td>
+          <td>${action}</td>
         </tr>`;
     }).join('');
 
@@ -654,10 +770,11 @@
   }
 
   function exportReportCSV() {
-    const headers = ['Wheel Axle No','Loco No','Type','Destination','Sent Date','Received Date','Status','Remarks'];
+    const headers = ['Sent As Axle No','Sent As Loco No','Destination','Sent Date','Received Axle No','Received Loco No','Received Type','Received Date','Status','Remarks'];
     const rows = reportRows().map(t => [
-      t.wheel.axle, t.wheel.loco, t.wheel.type, t.destination,
-      fmtDate(t.sendDate), fmtDate(t.receiveDate), t.receiveDate ? 'Received' : 'Out',
+      t.wheel.axle, t.wheel.loco, t.destination, fmtDate(t.sendDate),
+      t.recAxle || '', t.recLoco || '', t.recType || '',
+      fmtDate(t.receiveDate), t.receiveDate ? 'Received' : 'Out',
       t.receiveDate ? (t.recRemarks || t.sendRemarks || '') : (t.sendRemarks || '')
     ].map(v => `"${v}"`).join(','));
     const csv  = [headers.join(','), ...rows].join('\n');
@@ -678,12 +795,35 @@
     document.getElementById('sendDate').value = todayStr();
     document.getElementById('sendRemarks').value = '';
     ['sendWheelSl','sendDest','sendDate'].forEach(id => document.getElementById(id).closest('.field').classList.remove('has-error'));
+    document.getElementById('sendConfirmCheck').checked = false;
+    updateSendPreview();
 
     document.getElementById('sendOverlay').classList.add('open');
   }
   function closeSend() { document.getElementById('sendOverlay').classList.remove('open'); }
 
+  function updateSendPreview() {
+    const sl = parseInt(document.getElementById('sendWheelSl').value);
+    const w  = sl ? wheelBySl(sl) : null;
+    document.getElementById('sendPreviewEmpty').style.display = w ? 'none' : 'block';
+    document.getElementById('sendPreviewGrid').style.display  = w ? 'grid' : 'none';
+    if (w) {
+      document.getElementById('sendPrevAxle').textContent = w.axle;
+      document.getElementById('sendPrevLoco').textContent = w.loco;
+      document.getElementById('sendPrevType').textContent = w.type;
+    }
+    // Selection changed — make the user re-confirm before submitting.
+    document.getElementById('sendConfirmCheck').checked = false;
+    toggleSendSubmit();
+  }
+
+  function toggleSendSubmit() {
+    document.getElementById('confirmSendBtn').disabled = !document.getElementById('sendConfirmCheck').checked;
+  }
+
   function submitSend() {
+    if (!document.getElementById('sendConfirmCheck').checked) return;
+
     const sl   = parseInt(document.getElementById('sendWheelSl').value);
     const dest = document.getElementById('sendDest').value;
     const date = document.getElementById('sendDate').value;
@@ -702,6 +842,20 @@
     renderReport();
   }
 
+  // Lets a wrongly-sent wheel be cancelled while it's still Out — removes the
+  // dispatch record entirely so the wheel becomes available to send again.
+  function cancelSend(id) {
+    const t = TRANSFERS.find(x => x.id === id);
+    if (!t) return;
+    const w = wheelBySl(t.sl);
+    if (!confirm(`Cancel this dispatch of ${wheelLabel(w)} to ${t.destination}? This wheel will no longer be recorded as sent out.`)) return;
+
+    TRANSFERS = TRANSFERS.filter(x => x.id !== id);
+    showToast('Dispatch cancelled.', 'success');
+    render();
+    renderReport();
+  }
+
   // ── Receive Wheel ──
   function openReceive(id) {
     receivingId = id;
@@ -710,22 +864,91 @@
     document.getElementById('recWheel').textContent    = wheelLabel(w);
     document.getElementById('recDest').textContent      = t.destination;
     document.getElementById('recSendDate').textContent  = fmtDate(t.sendDate);
+
+    document.getElementById('recAxle').value = '';
+    document.getElementById('recLoco').value = '';
+    document.getElementById('recType').value = w ? w.type : 'WAG7';
+    document.getElementById('recDia').value   = '';
+    document.getElementById('recPePH').value  = '';
+    document.getElementById('recPePT').value  = '';
+    document.getElementById('recCePH').value  = '';
+    document.getElementById('recCePT').value  = '';
+    document.getElementById('recMsu').value   = '';
+    document.getElementById('recWdist').value = '';
     document.getElementById('recDate').value    = todayStr();
     document.getElementById('recRemarks').value = '';
-    document.getElementById('recDate').closest('.field').classList.remove('has-error');
+    ['recAxle','recLoco','recDate'].forEach(fid => document.getElementById(fid).closest('.field').classList.remove('has-error'));
+    document.getElementById('recConfirmCheck').checked = false;
+    toggleReceiveSubmit();
+
     document.getElementById('receiveOverlay').classList.add('open');
   }
   function closeReceive() { document.getElementById('receiveOverlay').classList.remove('open'); receivingId = null; }
 
-  function confirmReceive() {
-    const date = document.getElementById('recDate').value;
-    if (!date) { document.getElementById('recDate').closest('.field').classList.add('has-error'); return; }
+  function toggleReceiveSubmit() {
+    document.getElementById('confirmReceiveBtn').disabled = !document.getElementById('recConfirmCheck').checked;
+  }
 
+  function confirmReceive() {
+    if (!document.getElementById('recConfirmCheck').checked) return;
+
+    const axle = document.getElementById('recAxle').value.trim();
+    const loco = document.getElementById('recLoco').value.trim();
+    const date = document.getElementById('recDate').value;
+
+    let ok = true;
+    const setErr = fid => { document.getElementById(fid).closest('.field').classList.add('has-error'); ok = false; };
+    const clrErr = fid => document.getElementById(fid).closest('.field').classList.remove('has-error');
+    [['recAxle', axle], ['recLoco', loco], ['recDate', date]].forEach(([fid, val]) => val ? clrErr(fid) : setErr(fid));
+    if (!ok) return;
+
+    // Guard: the entered axle is already recorded as out on a different active transfer —
+    // likely means the wrong row was used to receive this wheel.
+    const conflict = TRANSFERS.find(x => {
+      if (x.id === receivingId || x.receiveDate) return false;
+      const cw = wheelBySl(x.sl);
+      return cw && cw.axle.toLowerCase() === axle.toLowerCase();
+    });
+    if (conflict) {
+      const proceed = confirm(`Axle ${axle} is currently recorded as still OUT at ${conflict.destination} on a different transfer. This looks like it may be the wrong wheel.\n\nReceive it here anyway?`);
+      if (!proceed) return;
+    }
+
+    const numOrNull = v => v === '' ? null : parseFloat(v);
     const t = TRANSFERS.find(x => x.id === receivingId);
     t.receiveDate = date;
     t.recRemarks  = document.getElementById('recRemarks').value.trim();
+    t.recAxle     = axle;
+    t.recLoco     = loco;
+    t.recType     = document.getElementById('recType').value;
+    t.recDia      = numOrNull(document.getElementById('recDia').value);
+    t.recPePH     = numOrNull(document.getElementById('recPePH').value);
+    t.recPePT     = numOrNull(document.getElementById('recPePT').value);
+    t.recCePH     = numOrNull(document.getElementById('recCePH').value);
+    t.recCePT     = numOrNull(document.getElementById('recCePT').value);
+    t.recMsu      = numOrNull(document.getElementById('recMsu').value);
+    t.recWdist    = numOrNull(document.getElementById('recWdist').value);
     closeReceive();
     showToast('Wheel marked as received.', 'success');
+    render();
+    renderReport();
+  }
+
+  // Lets a mistaken "Mark Received" be reverted — the wheel goes back to Out
+  // and the receipt fields are cleared, so it can be received again correctly.
+  function undoReceive(id) {
+    const t = TRANSFERS.find(x => x.id === id);
+    if (!t) return;
+    const wasAs = t.recAxle ? `${t.recAxle} (${t.recLoco || '—'})` : '';
+    if (!confirm(`Undo receipt${wasAs ? ' of ' + wasAs : ''}? This wheel will be moved back to "Currently Out".`)) return;
+
+    t.receiveDate = null;
+    t.recRemarks  = '';
+    delete t.recAxle; delete t.recLoco; delete t.recType; delete t.recDia;
+    delete t.recPePH; delete t.recPePT; delete t.recCePH; delete t.recCePT;
+    delete t.recMsu; delete t.recWdist;
+
+    showToast('Receipt undone — wheel moved back to Out.', 'success');
     render();
     renderReport();
   }
