@@ -90,6 +90,8 @@
     .dest-goc   { background:#fff8e8; color:#92600a; }
     .dest-lwper { background:#faf5ff; color:#6b21a8; }
 
+    .defect-badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:6px; font-size:11.5px; font-weight:700; background:#fff5f5; color:var(--danger); }
+
     .remarks-cell { font-size:12.5px; color:var(--text-muted); max-width:200px; }
 
     .btn-sm { padding:6px 12px; font-size:12px; font-weight:700; border-radius:7px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; transition:background .15s; }
@@ -300,6 +302,7 @@
               <tr>
                 <th>Wheel</th>
                 <th>Destination</th>
+                <th>Defect</th>
                 <th>Sent Date</th>
                 <th>Remarks</th>
                 <th style="cursor:default">Actions</th>
@@ -366,6 +369,7 @@
               <tr>
                 <th>Wheel</th>
                 <th>Destination</th>
+                <th>Defect</th>
                 <th>Sent Date</th>
                 <th>Received Date</th>
                 <th>Status</th>
@@ -414,6 +418,21 @@
               <option value="LW/PER">LW/PER</option>
             </select>
             <span class="field-error" id="sendDest-err">Please select a destination.</span>
+          </div>
+          <div class="field">
+            <label>Defective Reason *</label>
+            <select id="sendDefect">
+              <option value="">Select reason</option>
+              <option value="RD">RD</option>
+              <option value="RA">RA</option>
+              <option value="WD">WD</option>
+              <option value="MSU">MSU</option>
+              <option value="Step Size JD">Step Size JD</option>
+              <option value="Step Size Thrower">Step Size Thrower</option>
+              <option value="Disc Crack">Disc Crack</option>
+              <option value="Bull Gear">Bull Gear</option>
+            </select>
+            <span class="field-error" id="sendDefect-err">Please select a defective reason.</span>
           </div>
           <div class="field">
             <label>Send Date *</label>
@@ -582,13 +601,13 @@
 
   // ── Transfer log (seed data) — a wheel can be sent and received more than once ──
   let TRANSFERS = [
-    { id:1, sl:2,  destination:'GOC',    sendDate:'2026-05-20', sendRemarks:'Routine wheel turning', receiveDate:'2026-06-02', recRemarks:'Profile within limits.',
+    { id:1, sl:2,  destination:'GOC',    defectReason:'RD',  sendDate:'2026-05-20', sendRemarks:'Routine wheel turning', receiveDate:'2026-06-02', recRemarks:'Profile within limits.',
       recAxle:'HH-80-39', recLoco:'27906/4', recType:'WAG7', recDia:1031, recPePH:1.20, recPePT:0.60, recCePH:1.10, recCePT:0.40, recMsu:0.75, recWdist:1597.10 },
-    { id:2, sl:5,  destination:'LW/PER', sendDate:'2026-06-01', sendRemarks:'Profile correction',     receiveDate:null,        recRemarks:'' },
-    { id:3, sl:9,  destination:'GOC',    sendDate:'2026-06-10', sendRemarks:'Flange thickness check', receiveDate:null,        recRemarks:'' },
-    { id:4, sl:13, destination:'LW/PER', sendDate:'2026-05-28', sendRemarks:'',                       receiveDate:'2026-06-08', recRemarks:'Wheelset swapped at LW/PER — returned with a different axle.',
+    { id:2, sl:5,  destination:'LW/PER', defectReason:'WD',  sendDate:'2026-06-01', sendRemarks:'Profile correction',     receiveDate:null,        recRemarks:'' },
+    { id:3, sl:9,  destination:'GOC',    defectReason:'Disc Crack', sendDate:'2026-06-10', sendRemarks:'Flange thickness check', receiveDate:null,        recRemarks:'' },
+    { id:4, sl:13, destination:'LW/PER', defectReason:'Bull Gear', sendDate:'2026-05-28', sendRemarks:'',                       receiveDate:'2026-06-08', recRemarks:'Wheelset swapped at LW/PER — returned with a different axle.',
       recAxle:'HH-99-12', recLoco:'27472/9', recType:'WAP7', recDia:1048, recPePH:1.05, recPePT:0.50, recCePH:0.95, recCePT:0.35, recMsu:0.60, recWdist:1597.85 },
-    { id:5, sl:2,  destination:'LW/PER', sendDate:'2026-06-12', sendRemarks:'Re-sent for re-profiling after defect found', receiveDate:null, recRemarks:'' },
+    { id:5, sl:2,  destination:'LW/PER', defectReason:'MSU', sendDate:'2026-06-12', sendRemarks:'Re-sent for re-profiling after defect found', receiveDate:null, recRemarks:'' },
   ];
   let nextId = TRANSFERS.length + 1;
 
@@ -611,7 +630,7 @@
       .map(t => ({ ...t, wheel: wheelBySl(t.sl) }))
       .filter(t => {
         if (dest && t.destination !== dest) return false;
-        if (q && !`${t.wheel.axle} ${t.wheel.loco}`.toLowerCase().includes(q)) return false;
+        if (q && !`${t.wheel.axle} ${t.wheel.loco} ${t.defectReason || ''}`.toLowerCase().includes(q)) return false;
         return true;
       })
       .sort((a, b) => b.id - a.id);
@@ -625,6 +644,7 @@
         <tr>
           <td class="wheel-cell"><div class="w-axle">${t.wheel.axle}</div><div class="w-loco">${t.wheel.loco} · ${t.wheel.type}</div></td>
           <td><span class="dest-badge ${destCls}">${t.destination}</span></td>
+          <td><span class="defect-badge">${t.defectReason || '—'}</span></td>
           <td>${fmtDate(t.sendDate)}</td>
           <td class="remarks-cell">${t.sendRemarks || '—'}</td>
           <td>
@@ -677,7 +697,7 @@
         if (stat && st !== stat) return false;
         if (from && t.sendDate < from) return false;
         if (to   && t.sendDate > to)   return false;
-        if (q && !`${t.wheel.axle} ${t.wheel.loco} ${t.recAxle || ''} ${t.recLoco || ''}`.toLowerCase().includes(q)) return false;
+        if (q && !`${t.wheel.axle} ${t.wheel.loco} ${t.recAxle || ''} ${t.recLoco || ''} ${t.defectReason || ''}`.toLowerCase().includes(q)) return false;
         return true;
       })
       .sort((a, b) => b.id - a.id);
@@ -712,6 +732,7 @@
         <tr>
           <td class="wheel-cell">${wheelCell}</td>
           <td><span class="dest-badge ${destCls}">${t.destination}</span></td>
+          <td><span class="defect-badge">${t.defectReason || '—'}</span></td>
           <td>${fmtDate(t.sendDate)}</td>
           <td>${fmtDate(t.receiveDate)}</td>
           <td><span class="status-pill ${statCls}"><span class="status-dot"></span>${statLbl}</span></td>
@@ -770,9 +791,9 @@
   }
 
   function exportReportCSV() {
-    const headers = ['Sent As Axle No','Sent As Loco No','Destination','Sent Date','Received Axle No','Received Loco No','Received Type','Received Date','Status','Remarks'];
+    const headers = ['Sent As Axle No','Sent As Loco No','Destination','Defective Reason','Sent Date','Received Axle No','Received Loco No','Received Type','Received Date','Status','Remarks'];
     const rows = reportRows().map(t => [
-      t.wheel.axle, t.wheel.loco, t.destination, fmtDate(t.sendDate),
+      t.wheel.axle, t.wheel.loco, t.destination, t.defectReason || '', fmtDate(t.sendDate),
       t.recAxle || '', t.recLoco || '', t.recType || '',
       fmtDate(t.receiveDate), t.receiveDate ? 'Received' : 'Out',
       t.receiveDate ? (t.recRemarks || t.sendRemarks || '') : (t.sendRemarks || '')
@@ -792,9 +813,10 @@
       available.map(w => `<option value="${w.sl}">SL ${w.sl} — ${w.axle} (${w.loco})</option>`).join('');
 
     document.getElementById('sendDest').value = '';
+    document.getElementById('sendDefect').value = '';
     document.getElementById('sendDate').value = todayStr();
     document.getElementById('sendRemarks').value = '';
-    ['sendWheelSl','sendDest','sendDate'].forEach(id => document.getElementById(id).closest('.field').classList.remove('has-error'));
+    ['sendWheelSl','sendDest','sendDefect','sendDate'].forEach(id => document.getElementById(id).closest('.field').classList.remove('has-error'));
     document.getElementById('sendConfirmCheck').checked = false;
     updateSendPreview();
 
@@ -824,18 +846,19 @@
   function submitSend() {
     if (!document.getElementById('sendConfirmCheck').checked) return;
 
-    const sl   = parseInt(document.getElementById('sendWheelSl').value);
-    const dest = document.getElementById('sendDest').value;
-    const date = document.getElementById('sendDate').value;
+    const sl     = parseInt(document.getElementById('sendWheelSl').value);
+    const dest   = document.getElementById('sendDest').value;
+    const defect = document.getElementById('sendDefect').value;
+    const date   = document.getElementById('sendDate').value;
     const remarks = document.getElementById('sendRemarks').value.trim();
 
     let ok = true;
     const setErr = id => { document.getElementById(id).closest('.field').classList.add('has-error'); ok = false; };
     const clrErr = id => document.getElementById(id).closest('.field').classList.remove('has-error');
-    [['sendWheelSl', sl], ['sendDest', dest], ['sendDate', date]].forEach(([id, val]) => val ? clrErr(id) : setErr(id));
+    [['sendWheelSl', sl], ['sendDest', dest], ['sendDefect', defect], ['sendDate', date]].forEach(([id, val]) => val ? clrErr(id) : setErr(id));
     if (!ok) return;
 
-    TRANSFERS.push({ id:nextId++, sl, destination:dest, sendDate:date, sendRemarks:remarks, receiveDate:null, recRemarks:'' });
+    TRANSFERS.push({ id:nextId++, sl, destination:dest, defectReason:defect, sendDate:date, sendRemarks:remarks, receiveDate:null, recRemarks:'' });
     closeSend();
     showToast(`Wheel sent to ${dest}.`, 'success');
     render();

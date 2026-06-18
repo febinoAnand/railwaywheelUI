@@ -161,6 +161,7 @@
     .chip-scrap  { background: #fff5f5; color: var(--danger); }
     .chip-wpark  { background: #faf5ff; color: #6b46c1; }
     .chip-wshop  { background: #fffbeb; color: #92600a; }
+    .chip-eled   { background: #e8f0f9; color: var(--rail-mid); border: 1px solid #b8d4e8; }
     .result-count { font-size: 12.5px; color: var(--text-muted); margin-left: auto; }
 
     /* ── Table card ── */
@@ -232,11 +233,13 @@
     .pos-scrap  { background: #fff5f5; color: var(--danger); border: 1px solid #feb2b2; }
     .pos-wpark  { background: #faf5ff; color: #6b46c1; border: 1px solid #d6bcfa; }
     .pos-wshop  { background: #fffbeb; color: #92600a; border: 1px solid #fbd38d; }
+    .pos-eled   { background: #e8f0f9; color: var(--rail-mid); border: 1px solid #b8d4e8; }
     .pos-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
     .pos-hrshop .pos-dot { background: #38a169; }
     .pos-scrap  .pos-dot { background: var(--danger); }
     .pos-wpark  .pos-dot { background: #805ad5; }
     .pos-wshop  .pos-dot { background: #d97706; }
+    .pos-eled   .pos-dot { background: var(--rail-mid); }
 
     /* remarks badge */
     .remark-tag {
@@ -554,6 +557,7 @@
               <option value="YARD">Yard</option>
               <option value="wheel park">Wheel Park</option>
               <option value="wheel shop">Wheel Shop</option>
+              <option value="ELS/ED (Loco Account)">ELS/ED (Loco Account)</option>
             </select>
           </div>
           <div class="filter-item">
@@ -617,6 +621,7 @@
         <div class="chip chip-scrap"  id="chipScrap">— Yard</div>
         <div class="chip chip-wpark"  id="chipWPark">— Wheel Park</div>
         <div class="chip chip-wshop"  id="chipWShop">— Wheel Shop</div>
+        <div class="chip chip-eled"   id="chipEled">— ELS/ED (Loco Account)</div>
         <div class="result-count" id="resultCount"></div>
       </div>
 
@@ -852,7 +857,7 @@
 
   function rowHTML(w) {
     const diaClass  = w.dia < 1030 ? 'dia-crit' : w.dia <= 1040 ? 'dia-warn' : w.dia >= 1071 ? 'dia-high' : 'dia-good';
-    const posCls    = { 'HR SHOP':'pos-hrshop', 'YARD':'pos-scrap', 'wheel park':'pos-wpark', 'wheel shop':'pos-wshop' }[w.location] || 'pos-hrshop';
+    const posCls    = { 'HR SHOP':'pos-hrshop', 'YARD':'pos-scrap', 'wheel park':'pos-wpark', 'wheel shop':'pos-wshop', 'ELS/ED (Loco Account)':'pos-eled' }[w.location] || 'pos-hrshop';
     const _msuLimits  = JSON.parse(localStorage.getItem('rt_msu_limits') || '{}');
     const _msuDefault = { WAG7: 1.5, WAP7: 1.0, WAG9: 1.0 };
     const _msuLimit   = _msuLimits['msu' + w.type] !== undefined ? _msuLimits['msu' + w.type] : (_msuDefault[w.type] ?? 1.5);
@@ -909,6 +914,7 @@
     document.getElementById('chipScrap').textContent  = `${src.filter(w=>w.location==='YARD').length} Yard`;
     document.getElementById('chipWPark').textContent  = `${src.filter(w=>w.location==='wheel park').length} Wheel Park`;
     document.getElementById('chipWShop').textContent  = `${src.filter(w=>w.location==='wheel shop').length} Wheel Shop`;
+    document.getElementById('chipEled').textContent   = `${src.filter(w=>w.location==='ELS/ED (Loco Account)').length} ELS/ED (Loco Account)`;
   }
 
   // ── Sort icons ──
